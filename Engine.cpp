@@ -280,6 +280,101 @@ void Engine::blackPawnMoves()
 	}
 }
 
+void Engine::whiteKnightMoves()
+{
+	Bitboard knightsBoard = chessboard.mBoard[WHITE_KNIGHTS_BOARD];
+	Bitboard elevenOClockAttack = knightsBoard >> 17;
+	Bitboard tenOClockAttack = knightsBoard >> 10;
+	Bitboard eightOClockAttack = knightsBoard << 6;
+	Bitboard sevenOClockAttack = knightsBoard << 15;
+	Bitboard fiveOClockAttack = knightsBoard << 17;
+	Bitboard fourOClockAttack = knightsBoard << 10;
+	Bitboard twoOClockAttack = knightsBoard >> 6;
+	Bitboard oneOClockAttack = knightsBoard >> 15;
+
+	//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
+	oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));	
+	twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
+	fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
+	fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
+	sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
+	eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
+	tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
+	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
+	
+	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 15), Square(i)));
+	
+	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 6), Square(i)));
+	
+	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 10), Square(i)));
+
+	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 17), Square(i)));
+
+	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 15), Square(i)));
+
+	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 6), Square(i)));
+
+	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 10), Square(i)));
+
+	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
+	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 17), Square(i)));
+
+}
+
+void Engine::blackKnightMoves()
+{
+	Bitboard knightsBoard = chessboard.mBoard[BLACK_KNIGHTS_BOARD];
+	Bitboard elevenOClockAttack = knightsBoard >> 17;
+	Bitboard tenOClockAttack = knightsBoard >> 10;
+	Bitboard eightOClockAttack = knightsBoard << 6;
+	Bitboard sevenOClockAttack = knightsBoard << 15;
+	Bitboard fiveOClockAttack = knightsBoard << 17;
+	Bitboard fourOClockAttack = knightsBoard << 10;
+	Bitboard twoOClockAttack = knightsBoard >> 6;
+	Bitboard oneOClockAttack = knightsBoard >> 15;
+
+	//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
+	oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));	
+	twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
+	fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
+	fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
+	sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
+	eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
+	tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
+	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
+	
+	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 15), Square(i)));
+	
+	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 6), Square(i)));
+	
+	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 10), Square(i)));
+
+	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 17), Square(i)));
+
+	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 15), Square(i)));
+
+	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 6), Square(i)));
+
+	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 10), Square(i)));
+
+	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
+	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 17), Square(i)));
+}
+
 void Engine::uci()
 {
 	std::string commandString;
@@ -393,8 +488,10 @@ void Engine::generateMoves()
 	if(chessboard.mPlayerToMove == Player::WHITE)
 	{
 		whitePawnMoves();
+		whiteKnightMoves();
 	}else{
 		blackPawnMoves();
+		blackKnightMoves();
 	}
 	std::cout << "bestmove ";
 	auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];

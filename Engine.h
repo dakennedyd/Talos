@@ -12,6 +12,8 @@ public:
 	~Engine();
 	void whitePawnMoves();
 	void blackPawnMoves();
+	void whiteKnightMoves();
+	void blackKnightMoves();
 	void uci();
 	void printInfo();
 	void printBitboard(const Bitboard &bitboard);
