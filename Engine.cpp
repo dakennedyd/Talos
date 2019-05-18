@@ -28,6 +28,7 @@ Bitboard Engine::checkIfOnPassantPossibleOnNextMove(const Square a, const Square
 }
 Engine::Engine()
 {	
+	mPossibleMoves.reserve(100);
 	printInfo();
 }
 
@@ -159,6 +160,126 @@ void Engine::whitePawnMoves()
 	}
 }
 
+void Engine::blackPawnMoves()
+{
+	Bitboard p1, p2;//, pTotal;
+	p1 = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	p1 = p1 << 8;
+	p1 = p1 & (~(p1 & chessboard.mBoard[ALL_PIECES_BOARD]));//all the panws that can advance one square
+	p1 = p1 & (~RANK1); //don't advance to last rank, promotion handles this part
+	//printBitboard(pTotal);
+	auto movesOneSquare = getBitsPosition(p1);
+	for (auto &i : movesOneSquare)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i)));
+		//mPossibleMoves.back().printMove();
+	}
+
+	p2 = (chessboard.mBoard[BLACK_PAWNS_BOARD] & RANK7) << 8;
+	p2 = p2 & (~(p2 & chessboard.mBoard[ALL_PIECES_BOARD]));
+	p2 = p2 << 8;
+	p2 = p2 & (~(p2 & chessboard.mBoard[ALL_PIECES_BOARD]));//all the pawns that can advance two squares	
+	auto movesTwoSquares = getBitsPosition(p2);
+	for (auto &i : movesTwoSquares)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 16), Square(i),Piece::NO_PIECE, i >> 8));
+	}
+
+	//------------CAPTURE----------------------
+	Bitboard captureLeft, captureRight;
+	captureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	captureRight = captureRight << 7;
+	captureRight = captureRight & (~HFILE);
+	captureRight = captureRight & (~RANK1); //don't advance to last rank, promotion handles this part
+	captureRight = captureRight & chessboard.mBoard[WHITE_PIECES_BOARD];
+	auto captureRightBits = getBitsPosition(captureRight);
+	for (auto &i : captureRightBits)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i)));
+		//mPossibleMoves.back().printMove();
+	}
+
+	captureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	captureLeft = captureLeft << 9;
+	captureLeft = captureLeft & (~AFILE);
+	captureLeft = captureLeft & (~RANK1); //don't advance to last rank, promotion handles this part
+	captureLeft = captureLeft & chessboard.mBoard[WHITE_PIECES_BOARD];
+	auto captureLeftBits = getBitsPosition(captureLeft);
+	for (auto &i : captureLeftBits)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i)));
+		//mPossibleMoves.back().printMove();
+	}
+	//------------ON PASSANT CAPTURE---------------
+	Bitboard opCaptureLeft, opCaptureRight;
+	opCaptureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	opCaptureRight = opCaptureRight << 7;
+	opCaptureRight = opCaptureRight & (~HFILE);
+	opCaptureRight = opCaptureRight & chessboard.mBoard[ONPASSANT_BOARD];
+	auto opCaptureRightBits = getBitsPosition(opCaptureRight);
+	for (auto &i : opCaptureRightBits)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i)));
+		//mPossibleMoves.back().printMove();
+	}
+
+	opCaptureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	opCaptureLeft = opCaptureLeft << 9;
+	opCaptureLeft = opCaptureLeft & (~AFILE);
+	opCaptureLeft = opCaptureLeft & chessboard.mBoard[ONPASSANT_BOARD];
+	auto opCaptureLeftBits = getBitsPosition(opCaptureLeft);
+	for (auto &i : opCaptureLeftBits)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i)));
+		//mPossibleMoves.back().printMove();
+	}
+
+	//------------PROMOTION----------------------
+	Bitboard promotedPawn, capturePromotionL, capturePromotionR;
+	promotedPawn = chessboard.mBoard[BLACK_PAWNS_BOARD];
+	promotedPawn = promotedPawn & RANK2;
+	
+	capturePromotionR = promotedPawn;
+	capturePromotionL = promotedPawn;
+
+	promotedPawn = promotedPawn << 8;
+	promotedPawn = promotedPawn & (~chessboard.mBoard[ALL_PIECES_BOARD]);
+	auto promotedPawnBits = getBitsPosition(promotedPawn);
+	for (auto &i : promotedPawnBits)
+	{
+		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::BISHOP));
+	}
+
+	capturePromotionR = capturePromotionR << 7;
+	capturePromotionR = capturePromotionR & (~HFILE);
+	capturePromotionR = capturePromotionR & chessboard.mBoard[WHITE_PIECES_BOARD];
+	auto capturePromotionRBits = getBitsPosition(capturePromotionR);
+	for (auto &i : capturePromotionRBits)
+	{		
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::BISHOP));
+		//mPossibleMoves.back().printMove();
+	}
+	
+	capturePromotionL = capturePromotionL << 9;
+	capturePromotionL = capturePromotionL & (~AFILE);
+	capturePromotionL = capturePromotionL & chessboard.mBoard[WHITE_PIECES_BOARD];
+	auto capturePromotionLBits = getBitsPosition(capturePromotionL);
+	for (auto &i : capturePromotionLBits)
+	{		
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::BISHOP));
+		//mPossibleMoves.back().printMove();
+	}
+}
+
 void Engine::uci()
 {
 	std::string commandString;
@@ -269,7 +390,12 @@ void Engine::printBitboard(const Bitboard & bitboard)
 void Engine::generateMoves()
 {
 	mPossibleMoves.clear();
-	whitePawnMoves();
+	if(chessboard.mPlayerToMove == Player::WHITE)
+	{
+		whitePawnMoves();
+	}else{
+		blackPawnMoves();
+	}
 	std::cout << "bestmove ";
 	auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
 	move.printMove();

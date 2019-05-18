@@ -11,6 +11,7 @@ public:
 	Engine();
 	~Engine();
 	void whitePawnMoves();
+	void blackPawnMoves();
 	void uci();
 	void printInfo();
 	void printBitboard(const Bitboard &bitboard);
@@ -27,7 +28,7 @@ public:
 		return Move(SQUARE_STR_TO_NUM[str.substr(0, 2)], SQUARE_STR_TO_NUM[str.substr(2)]);
 	}
 
-	enum Player mPlayerToMove = Player::WHITE;
+	//enum Player mPlayerToMove = Player::WHITE;
 
 	/** 
 	gets a bitboard an outputs a vector containing the indices of

@@ -84,7 +84,7 @@ void BoardState::printBoard()
 		std::cout << "\n";
 	}
 	std::cout << "  ------------------------\n   a  b  c  d  e  f  g  h\n";
-	printBitboads();
+	//printBitboads();
 }
 
 void BoardState::printBitboads()
