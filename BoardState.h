@@ -7,10 +7,6 @@
 #include "Move.h"
 
 
-typedef uint64_t Bitboard;
-
-
-
 static Bitboard AFILE = 0x0101010101010101;
 static Bitboard BFILE = AFILE << 1;
 static Bitboard CFILE = BFILE << 1;
@@ -39,8 +35,9 @@ public:
 	void reset();
 
 	//changes state on the internal board does not check if it is legal or not
-	void makeMove(Move && move);
+	void makeMove(Move move);
 //private:	
+	void printBitboads();
 	//enum Player mPlayerToMove = Player::WHITE;
 	unsigned int mPlayerToMove = Player::WHITE;
 

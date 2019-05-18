@@ -11,7 +11,6 @@ public:
 	Engine();
 	~Engine();
 	void whitePawnMoves();
-	void whitePawnAttacks();
 	void uci();
 	void printInfo();
 	void printBitboard(const Bitboard &bitboard);
@@ -40,6 +39,7 @@ public:
 
 	BoardState & getChessBoard(){return chessboard;};
 private:
+	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
 	BoardState chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };

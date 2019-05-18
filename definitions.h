@@ -10,7 +10,10 @@
 //#include "Move.h"
 //#include "BoardState.h"
 
+typedef uint64_t Bitboard;
+
 enum Player {WHITE, BLACK};
+enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NO_PIECE};
 
 
 static double PAWN_VALUE = 1.0;
@@ -38,6 +41,7 @@ static int BLACK_QUEEN_BOARD = 11;
 static int BLACK_PIECES_BOARD = 12;
 static int WHITE_PIECES_BOARD = 13;
 static int ALL_PIECES_BOARD = 14;
+static int ONPASSANT_BOARD = 15;
 
 /** parse tokens in a string and return them as a vector */
 static std::vector<std::string> split(const std::string & str, const std::string & delimiter)

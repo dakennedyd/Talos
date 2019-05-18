@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <functional>
+#include "definitions.h"
 
 enum Square {
 	A8, B8, C8, D8, E8, F8, G8, H8,
@@ -36,6 +37,18 @@ template <> struct hash<Square> {
 // 		return std::hash<T>{}(t);
 //     }
 // };
+
+static std::unordered_map<enum Square, Bitboard> SQUARE_TO_BITBOARD = 
+{
+	{A8,uint64_t(1)<<7}, {B8,uint64_t(1)<<6}, {C8,uint64_t(1)<<5}, {D8,uint64_t(1)<<4}, {E8,uint64_t(1)<<3}, {F8,uint64_t(1)<<2}, {G8,uint64_t(1)<<1}, {H8,uint64_t(1)<<0},
+	{A7,uint64_t(1)<<15}, {B7,uint64_t(1)<<14}, {C7,uint64_t(1)<<13}, {D7,uint64_t(1)<<12}, {E7,uint64_t(1)<<11}, {F7,uint64_t(1)<<10}, {G7,uint64_t(1)<<9}, {H7,uint64_t(1)<<8},
+	{A6,uint64_t(1)<<23}, {B6,uint64_t(1)<<22}, {C6,uint64_t(1)<<21}, {D6,uint64_t(1)<<20}, {E6,uint64_t(1)<<19}, {F6,uint64_t(1)<<18}, {G6,uint64_t(1)<<17}, {H6,uint64_t(1)<<16},
+	{A5,uint64_t(1)<<31}, {B5,uint64_t(1)<<30}, {C5,uint64_t(1)<<29}, {D5,uint64_t(1)<<28}, {E5,uint64_t(1)<<27}, {F5,uint64_t(1)<<26}, {G5,uint64_t(1)<<25}, {H5,uint64_t(1)<<24},
+	{A4,uint64_t(1)<<39}, {B4,uint64_t(1)<<38}, {C4,uint64_t(1)<<37}, {D4,uint64_t(1)<<36}, {E4,uint64_t(1)<<35}, {F4,uint64_t(1)<<34}, {G4,uint64_t(1)<<33}, {H4,uint64_t(1)<<32},
+	{A3,uint64_t(1)<<47}, {B3,uint64_t(1)<<46}, {C3,uint64_t(1)<<45}, {D3,uint64_t(1)<<44}, {E3,uint64_t(1)<<43}, {F3,uint64_t(1)<<42}, {G3,uint64_t(1)<<41}, {H3,uint64_t(1)<<40},
+	{A2,uint64_t(1)<<55},  {B2,uint64_t(1)<<54},  {C2,uint64_t(1)<<53}, {D2,uint64_t(1)<<52}, {E2,uint64_t(1)<<51}, {F2,uint64_t(1)<<50}, {G2,uint64_t(1)<<49}, {H2,uint64_t(1)<<48},
+	{A1,uint64_t(1)<<63},  {B1,uint64_t(1)<<62},  {C1,uint64_t(1)<<61},  {D1,uint64_t(1)<<60},  {E1,uint64_t(1)<<59},  {F1,uint64_t(1)<<58},  {G1,uint64_t(1)<<57},  {H1,uint64_t(1)<<56}
+};
 
 static std::unordered_map<enum Square, std::string> SQUARE_NUM_TO_STR = 
 { 
@@ -78,8 +91,10 @@ static std::unordered_map<std::string, enum Square> SQUARE_STR_TO_NUM =
 struct Move
 {
 	//Move() = delete;
-	Move(const enum Square &moveFrom, const enum Square &moveTo)
-	: mMoveFrom(moveFrom), mMoveTo(moveTo) {
+	Move(const enum Square moveFrom, const enum Square moveTo, const enum Piece piecePromotion = Piece::NO_PIECE,
+	const Bitboard onPassant = 0x0 )
+	: mMoveFrom(moveFrom), mMoveTo(moveTo), mPromoteTo(piecePromotion),
+	mOnPassantBoard(onPassant) {
 		//SQUARE_NUM_TO_STR.emplace(std::pair<Square, std::string>{ A1,"a1" });
 	}
 	~Move() = default;
@@ -87,6 +102,8 @@ struct Move
 
 	Square mMoveFrom;
 	Square mMoveTo;
+	Piece mPromoteTo;
 	double mScore = 0;
+	Bitboard mOnPassantBoard;
 };
 
