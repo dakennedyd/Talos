@@ -1,5 +1,5 @@
 #include <cmath>
-#include "BoardState.h"
+#include "Chessboard.h"
 #include "definitions.h"
 
 inline void setPieceInBoard(uint64_t &piecePosition, Bitboard &board)
@@ -9,13 +9,13 @@ inline void setPieceInBoard(uint64_t &piecePosition, Bitboard &board)
 	board = board | b;
 }
 
-BoardState::BoardState()
+Chessboard::Chessboard()
 {
 	mBoard.reserve(16);
 	for (int i = 0; i < 16; i++) { mBoard.push_back(0); }
 }
 
-void BoardState::setState(const std::string & FENstring)
+void Chessboard::setState(const std::string & FENstring)
 {
 	reset();
 	//note: check to see if its a valid FENstring!!!
@@ -57,7 +57,21 @@ void BoardState::setState(const std::string & FENstring)
 	mBoard[ALL_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] | mBoard[BLACK_PIECES_BOARD];
 }
 
-void BoardState::printBoard()
+void Chessboard::printBitboard(const Bitboard & bitboard)
+{
+	Bitboard b;
+	for (uint64_t i = 0; i < 8; i++)
+	{
+		for (uint64_t j = 0; j < 8; j++)
+		{
+			b = (static_cast<uint64_t>(1) << (i * 8 + j)) & bitboard; if (b != 0) std::cout << " X ";
+			else std::cout << " - ";
+		}
+		std::cout << "\n";
+	}
+}
+
+void Chessboard::printBoard()
 {
 	Bitboard b;
 	for (uint64_t i = 0; i < 8; i++)
@@ -87,7 +101,7 @@ void BoardState::printBoard()
 	//printBitboads();
 }
 
-void BoardState::printBitboads()
+void Chessboard::printBitboads()
 {
 	std::vector<std::string> names = {
 		"WHITE_PAWNS_BOARD",
@@ -126,7 +140,7 @@ void BoardState::printBitboads()
 	}
 }
 
-void BoardState::reset()
+void Chessboard::reset()
 {
 	mPlayerToMove = WHITE;
 	std::fill(mBoard.begin(), mBoard.end(), 0); //reset board
@@ -135,7 +149,7 @@ void BoardState::reset()
 	std::swap(mHistory, empty);	
 }
 
-void BoardState::makeMove(Move move)
+void Chessboard::makeMove(Move move)
 {
 	Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;

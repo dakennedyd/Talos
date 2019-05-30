@@ -3,8 +3,9 @@
 #include <ctime>
 #include <random>
 #include <chrono>
-#include "BoardState.h"
+#include "Chessboard.h"
 #include "Move.h"
+
 class Engine
 {
 public:
@@ -14,10 +15,12 @@ public:
 	void blackPawnMoves();
 	void whiteKnightMoves();
 	void blackKnightMoves();
+	void whiteRookMoves();
 	void uci();
 	void printInfo();
-	void printBitboard(const Bitboard &bitboard);
 	void generateMoves();
+	void init();
+	
 	
 	int getRandomNumber(int min, int max)
 	{
@@ -40,10 +43,17 @@ public:
 	*/
 	std::vector<uint64_t> getBitsPosition(Bitboard board);
 
-	BoardState & getChessBoard(){return chessboard;};
+	Chessboard & getChessBoard(){return chessboard;};
 private:
+	/**
+	 * @brief precalculates rays for sliding pieces for each square on the board
+	 * 
+	 */
+	void generateRays();
+	
+	Bitboard mRays[64][8];//precalculated rays first dim is square pos second dim is direction
 	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
-	BoardState chessboard;
+	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };
 	typedef std::chrono::duration<unsigned int, std::milli> ms;

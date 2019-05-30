@@ -37,6 +37,11 @@ Engine::~Engine()
 {
 }
 
+void Engine::init()
+{
+	generateRays();
+}
+
 void Engine::whitePawnMoves()
 {
 	Bitboard p1, p2;//, pTotal;
@@ -375,6 +380,74 @@ void Engine::blackKnightMoves()
 	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 17), Square(i)));
 }
 
+void Engine::whiteRookMoves()
+{
+	Bitboard rook = chessboard.mBoard[WHITE_ROOKS_BOARD];
+	int rookBitPos = 0;
+	while(rookBitPos < 64)
+	{		
+		if(rook & uint64_t(1))
+		{
+			rookBitPos++;
+			rook = rook >> 1;
+			if(rookBitPos > 63) return; //no rook on the board
+		}else{
+			while((rook & uint64_t(1)) == 0x0)	
+			{
+				rookBitPos++;
+				rook = rook >> 1;
+				if(rookBitPos > 63) return; //no rook on the board
+			}
+		}
+		Bitboard currentRook = uint64_t(1) << rookBitPos;
+			
+		//up
+		{
+			Bitboard rookAttack = 0;
+			int counter = 0;
+			while(currentRook & ~RANK8)
+			{
+				if(rookAttack & RANK8) break;
+				counter++;
+				rookAttack = rookAttack | (currentRook >> (counter*8));
+				if (rookAttack & chessboard.mBoard[WHITE_PIECES_BOARD]) //can't capture own pieces
+				{
+					rookAttack = rookAttack & ~(currentRook >> (counter*8));
+					break;
+				}
+				if (rookAttack & chessboard.mBoard[BLACK_PIECES_BOARD]) break;
+			}
+			auto rookAttackBits = getBitsPosition(rookAttack);
+			for (auto &i : rookAttackBits)
+			{
+				mPossibleMoves.emplace_back(Move(Square(rookBitPos), Square(i)));
+			}
+		}
+		//right
+		{
+			Bitboard rookAttack = 0;
+			int counter = 0;
+			while(currentRook & ~HFILE)
+			{
+				if(rookAttack & HFILE) break;
+				counter++;
+				rookAttack = rookAttack | (currentRook << counter);
+				if (rookAttack & chessboard.mBoard[WHITE_PIECES_BOARD]) //can't capture own pieces
+				{
+					rookAttack = rookAttack & ~(currentRook << counter);
+					break;
+				}
+				if (rookAttack & chessboard.mBoard[BLACK_PIECES_BOARD]) break;
+			}
+			auto rookAttackBits = getBitsPosition(rookAttack);
+			for (auto &i : rookAttackBits)
+			{
+				mPossibleMoves.emplace_back(Move(Square(rookBitPos), Square(i)));
+			}
+		}
+	}
+}
+
 void Engine::uci()
 {
 	std::string commandString;
@@ -468,30 +541,17 @@ void Engine::printInfo()
 	std::cout << NAME << " by " << AUTHOR << "\n";
 }
 
-void Engine::printBitboard(const Bitboard & bitboard)
-{
-	Bitboard b;
-	for (uint64_t i = 0; i < 8; i++)
-	{
-		for (uint64_t j = 0; j < 8; j++)
-		{
-			b = (static_cast<uint64_t>(1) << (i * 8 + j)) & bitboard; if (b != 0) std::cout << " X ";
-			else std::cout << " - ";
-		}
-		std::cout << "\n";
-	}
-}
-
 void Engine::generateMoves()
 {
 	mPossibleMoves.clear();
 	if(chessboard.mPlayerToMove == Player::WHITE)
 	{
 		whitePawnMoves();
-		whiteKnightMoves();
+		//whiteKnightMoves();
+		whiteRookMoves();
 	}else{
 		blackPawnMoves();
-		blackKnightMoves();
+		//blackKnightMoves();
 	}
 	std::cout << "bestmove ";
 	auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
@@ -512,5 +572,88 @@ std::vector<uint64_t> Engine::getBitsPosition(Bitboard board)
 	
 	return setBits;
 
+}
+
+void Engine::generateRays()
+{
+	
+	int bitCount = 0;
+	for(int i = 0; i < 8; i++)
+	{
+		for(int j = 0; j < 8; j++)
+		{
+			//NORTH
+			mRays[bitCount][NORTH] = 0;
+			for(int k = 0; k < i; k++)
+			{
+				uint64_t x = uint64_t(1) << bitCount;
+				mRays[bitCount][NORTH] |= (x >> ( 8*(k+1)));
+			}
+			//NORTH-EAST
+			mRays[bitCount][NORTH_EAST] = 0;
+			int minNE = i < (7-j) ? i : (7-j);
+			for(int k = 0; k < minNE; k++)
+			{
+				mRays[bitCount][NORTH_EAST] |= (uint64_t(1) << ( bitCount - ( 7*(k+1) ) ));
+			}
+			//EAST
+			mRays[bitCount][EAST] = 0;
+			for(int k = 0; k < 7-j; k++)
+			{
+				mRays[bitCount][EAST] |= (uint64_t(1) << ( bitCount + ( k+1 ) ));
+			}
+			//SOUTH-EAST
+			mRays[bitCount][SOUTH_EAST] = 0;
+			int minSE = (7-i)<(7-j) ? 7-i : 7-j;
+			for(int k = 0; k < minSE; k++)
+			{
+				mRays[bitCount][SOUTH_EAST] |= (uint64_t(1) << ( bitCount + ( 9*(k+1) ) ));
+			}
+			//SOUTH
+			mRays[bitCount][SOUTH] = 0;
+			for(int k = 0; k < 7-i; k++)
+			{
+				mRays[bitCount][SOUTH] |= (uint64_t(1) << ( bitCount + ( 8*(k+1) ) ));
+			}
+			//SOUTH-WEST
+			mRays[bitCount][SOUTH_WEST] = 0;
+			int minSW = (7-i) < j ? (7-i) : j;
+			for(int k = 0; k < minSW; k++)
+			{
+				mRays[bitCount][SOUTH_WEST] |= (uint64_t(1) << ( bitCount + ( 7*(k+1) ) ));
+			}
+			//WEST
+			mRays[bitCount][WEST] = 0;
+			for(int k = 0; k < j; k++)
+			{
+				mRays[bitCount][WEST] |= (uint64_t(1) << ( bitCount - ( k+1 ) ));
+			}
+			//NORTH-WEST
+			mRays[bitCount][NORTH_WEST] = 0;
+			int minNW1 = j < i ? j : i;
+			int minNW2 = i < j ? i : j;
+			int minNW = minNW1 > minNW2 ? minNW1 : minNW2;
+			if(i == 7) minNW = j;
+			for(int k = 0; k < minNW; k++)
+			{
+				mRays[bitCount][NORTH_WEST] |= (uint64_t(1) << ( bitCount - ( 9*(k+1) ) ));
+			}
+			bitCount++;
+		}
+	}
+	Bitboard b = 0;
+	for(int i = 0; i < 64; i++)
+	{
+		for(int i2 = 0; i2 < 8; i2++)
+		{
+			for(int j2 = 0; j2 < 8; j2++)
+			{
+				b = (static_cast<uint64_t>(1) << (i2 * 8 + j2)) & mRays[i][NORTH_WEST];
+				if (b != 0) std::cout << " X "; else std::cout << " - ";
+			}
+			std::cout << "\n";
+		}
+		std::cout << "\n\n";
+	}	
 }
 

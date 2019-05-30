@@ -14,7 +14,8 @@ int main()
 	//std::cout << "\n";
 	//engine.whitePawnMoves();
 	//printBitboard(cFile);
-	//std::getline(std::cin, input);	
+	//std::getline(std::cin, input);
+	engine.init();
 	engine.uci();
     return 0;
 }

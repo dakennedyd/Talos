@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Move.h"
 #include "definitions.h"
-#include "BoardState.h"
+#include "Chessboard.h"
 
 void Move::printMove()
 {
