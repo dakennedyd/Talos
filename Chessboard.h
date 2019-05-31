@@ -13,7 +13,6 @@ public:
 	~Chessboard() = default;
 	void setState(const std::string &FENstring);	
 	void printBoard();
-	void printBitboard(const Bitboard &bitboard);
 	void reset();
 
 	//changes state on the internal board does not check if it is legal or not
@@ -21,7 +20,8 @@ public:
 
 	void makeMove();
 //private:	
-	void printBitboads();
+	void printBitboard(const Bitboard bitboard);
+	void printBitboards();
 	//enum Player mPlayerToMove = Player::WHITE;
 	unsigned int mPlayerToMove = Player::WHITE;
 

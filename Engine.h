@@ -11,11 +11,19 @@ class Engine
 public:
 	Engine();
 	~Engine();
+	void pawnMoves(const enum Player side);
 	void whitePawnMoves();
-	void blackPawnMoves();
 	void whiteKnightMoves();
-	void blackKnightMoves();
 	void whiteRookMoves();
+	void whiteBishopMoves();
+	void whiteQueenMoves();
+	void whiteKingMoves();
+	void blackPawnMoves();
+	void blackKnightMoves();
+	void blackRookMoves();
+	void blackBishopMoves();
+	void blackQueenMoves();
+	void blackKingMoves();
 	void uci();
 	void printInfo();
 	void generateMoves();
@@ -51,7 +59,7 @@ private:
 	 */
 	void generateRays();
 	
-	Bitboard mRays[64][8];//precalculated rays first dim is square pos second dim is direction
+	void debugPrint(const Bitboard n);
 	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
 	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };

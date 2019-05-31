@@ -12,7 +12,7 @@
 
 typedef uint64_t Bitboard;
 
-enum Player {WHITE, BLACK};
+enum Player {WHITE = 0, BLACK = 6};
 enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NO_PIECE};
 
 static Bitboard AFILE = 0x0101010101010101;
@@ -49,14 +49,14 @@ static int WHITE_KNIGHTS_BOARD = 2;
 static int WHITE_BISHOPS_BOARD = 3;
 static int WHITE_KING_BOARD = 4;
 static int WHITE_QUEEN_BOARD = 5;
-static int BLACK_PAWNS_BOARD = 6;
-static int BLACK_ROOKS_BOARD = 7;
-static int BLACK_KNIGHTS_BOARD = 8;
-static int BLACK_BISHOPS_BOARD = 9;
-static int BLACK_KING_BOARD = 10;
-static int BLACK_QUEEN_BOARD = 11;
-static int BLACK_PIECES_BOARD = 12;
-static int WHITE_PIECES_BOARD = 13;
+static int WHITE_PIECES_BOARD = 6;
+static int BLACK_PAWNS_BOARD = 7;
+static int BLACK_ROOKS_BOARD = 8;
+static int BLACK_KNIGHTS_BOARD = 9;
+static int BLACK_BISHOPS_BOARD = 10;
+static int BLACK_KING_BOARD = 11;
+static int BLACK_QUEEN_BOARD = 12;
+static int BLACK_PIECES_BOARD = 13;
 static int ALL_PIECES_BOARD = 14;
 static int ONPASSANT_BOARD = 15;
 
@@ -129,6 +129,8 @@ static int SOUTH_WEST = 5;
 static int WEST = 		6;
 static int NORTH_WEST = 7;
 
+static Bitboard attackRays[64][8];//precalculated rays first dim is square pos second dim is direction
+
 /** parse tokens in a string and return them as a vector */
 static std::vector<std::string> split(const std::string & str, const std::string & delimiter)
 {
@@ -145,3 +147,32 @@ static std::vector<std::string> split(const std::string & str, const std::string
 	return result;
 }
 
+//https://stackoverflow.com/questions/671815/what-is-the-fastest
+//-most-efficient-way-to-find-the-highest-set-bit-msb-in-an-i
+#if defined(__GNUC__)
+static Square getLowestSetBit(Bitboard n)
+{
+  return Square(__builtin_ctzll(n));
+}
+
+static Square getHighestSetBit(Bitboard n)
+{
+  return Square(63 ^ __builtin_clzll(n));
+}
+
+#elif defined(_MSC_VER)
+
+static Square getLowestSetBit(Bitboard n)
+{
+  unsigned long index;
+  _BitScanForward64(&index, n);
+  return static_cast<Square>(index);
+}
+
+static Square getHighestSetBit(Bitboard n)
+{
+  unsigned long index;
+  _BitScanReverse64(&index, n);
+  return static_cast<Square>(index);
+}
+#endif

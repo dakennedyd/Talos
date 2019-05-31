@@ -57,7 +57,7 @@ void Chessboard::setState(const std::string & FENstring)
 	mBoard[ALL_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] | mBoard[BLACK_PIECES_BOARD];
 }
 
-void Chessboard::printBitboard(const Bitboard & bitboard)
+void Chessboard::printBitboard(const Bitboard bitboard)
 {
 	Bitboard b;
 	for (uint64_t i = 0; i < 8; i++)
@@ -69,6 +69,7 @@ void Chessboard::printBitboard(const Bitboard & bitboard)
 		}
 		std::cout << "\n";
 	}
+	std::cout << "\n\n";
 }
 
 void Chessboard::printBoard()
@@ -101,7 +102,7 @@ void Chessboard::printBoard()
 	//printBitboads();
 }
 
-void Chessboard::printBitboads()
+void Chessboard::printBitboards()
 {
 	std::vector<std::string> names = {
 		"WHITE_PAWNS_BOARD",
@@ -110,6 +111,7 @@ void Chessboard::printBitboads()
 		"WHITE_BISHOPS_BOARD",
 		"WHITE_KING_BOARD",
 		"WHITE_QUEEN_BOARD", 
+		"WHITE_PIECES_BOARD",
 		"BLACK_PAWNS_BOARD",
 		"BLACK_ROOKS_BOARD",
 		"BLACK_KNIGHTS_BOARD",
@@ -117,7 +119,6 @@ void Chessboard::printBitboads()
 		"BLACK_KING_BOARD",
 		"BLACK_QUEEN_BOARD", 
 		"BLACK_PIECES_BOARD",
-		"WHITE_PIECES_BOARD",
 		"ALL_PIECES_BOARD",
 		"ONPASSANT_BOARD"
 	};
@@ -181,8 +182,9 @@ void Chessboard::makeMove(Move move)
 			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~(moveToSquare >> 8));
 		}
 	}
-	for (int i = 0; i <= 11; i++)
+	for (int i = 0; i <= 12; i++)
 	{
+		if(i==6) continue;
 		if ((mBoard[i] & moveFromSquare) != 0)//only modify the correct bitboard
 		{
 			//place piece in target square(in selected bitboard)
@@ -209,7 +211,7 @@ void Chessboard::makeMove(Move move)
 			//if move is a capture remove opponet's piece from its bitboard
 			if (mPlayerToMove == Player::WHITE)
 			{
-				for (int j = 6; j <= 11; j++)
+				for (int j = 7; j <= 12; j++)
 				{
 					//if(i == j) continue;
 					mBoard[j] = (~moveToSquare) & mBoard[j];
