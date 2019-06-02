@@ -150,8 +150,11 @@ void Chessboard::reset()
 	std::swap(mHistory, empty);	
 }
 
-void Chessboard::makeMove(Move move)
+void Chessboard::makeMove(const Move &move)
 {
+	mLastPromotedPiece = Piece::NO_PIECE;
+	mLastCapturedPiece = Piece::NO_PIECE;
+
 	Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
 
@@ -166,6 +169,7 @@ void Chessboard::makeMove(Move move)
 			mBoard[BLACK_PIECES_BOARD] = mBoard[BLACK_PIECES_BOARD] & (~(moveToSquare << 8));
 			mBoard[BLACK_PAWNS_BOARD] = mBoard[BLACK_PAWNS_BOARD] & (~(moveToSquare << 8));
 			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~(moveToSquare << 8));
+			mLastCapturedPiece = Piece::PAWN;
 		}
 	}
 	else
@@ -180,6 +184,7 @@ void Chessboard::makeMove(Move move)
 			mBoard[WHITE_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] & (~(moveToSquare >> 8));
 			mBoard[WHITE_PAWNS_BOARD] = mBoard[WHITE_PAWNS_BOARD] & (~(moveToSquare >> 8));
 			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~(moveToSquare >> 8));
+			mLastCapturedPiece = Piece::PAWN;
 		}
 	}
 	for (int i = 0; i <= 12; i++)
@@ -215,6 +220,7 @@ void Chessboard::makeMove(Move move)
 				{
 					//if(i == j) continue;
 					mBoard[j] = (~moveToSquare) & mBoard[j];
+					mLastCapturedPiece = Piece(j);
 				}
 			}
 			else
@@ -223,6 +229,7 @@ void Chessboard::makeMove(Move move)
 				{
 					//if(i == j) continue;
 					mBoard[j] = (~moveToSquare) & mBoard[j];
+					mLastCapturedPiece = Piece(j);
 				}
 			}
 		}
@@ -232,20 +239,44 @@ void Chessboard::makeMove(Move move)
 	//if move is a promotion place the new piece on the board
 	if (mPlayerToMove == Player::WHITE)
 	{
-		if(move.mPromoteTo == Piece::QUEEN) mBoard[WHITE_QUEEN_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::ROOK) mBoard[WHITE_ROOKS_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::BISHOP) mBoard[WHITE_BISHOPS_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::KNIGHT) mBoard[WHITE_KNIGHTS_BOARD] |= moveToSquare;
+		if(move.mPromoteTo == Piece::QUEEN) {mBoard[WHITE_QUEEN_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::QUEEN;}
+		if(move.mPromoteTo == Piece::ROOK) {mBoard[WHITE_ROOKS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::ROOK;}
+		if(move.mPromoteTo == Piece::BISHOP) {mBoard[WHITE_BISHOPS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::BISHOP;}
+		if(move.mPromoteTo == Piece::KNIGHT) {mBoard[WHITE_KNIGHTS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::KNIGHT;}
 	}else{
-		if(move.mPromoteTo == Piece::QUEEN) mBoard[BLACK_QUEEN_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::ROOK) mBoard[BLACK_ROOKS_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::BISHOP) mBoard[BLACK_BISHOPS_BOARD] |= moveToSquare;
-		if(move.mPromoteTo == Piece::KNIGHT) mBoard[BLACK_KNIGHTS_BOARD] |= moveToSquare;
+		if(move.mPromoteTo == Piece::QUEEN) {mBoard[BLACK_QUEEN_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::QUEEN;}
+		if(move.mPromoteTo == Piece::ROOK) {mBoard[BLACK_ROOKS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::ROOK;}
+		if(move.mPromoteTo == Piece::BISHOP) {mBoard[BLACK_BISHOPS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::BISHOP;}
+		if(move.mPromoteTo == Piece::KNIGHT) {mBoard[BLACK_KNIGHTS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::KNIGHT;}
 	}
 
 	//todo: calc move score
 	mHistory.push(move);	
-	mPlayerToMove = !mPlayerToMove;
+	//mPlayerToMove = !mPlayerToMove;
+	if(mPlayerToMove == Player::WHITE) mPlayerToMove = Player::BLACK;
+	else mPlayerToMove = Player::WHITE;
 	mBoard[ONPASSANT_BOARD] = move.mOnPassantBoard;
 
+}
+
+void Chessboard::unmakeMove(const Move &move)
+{
+	Bitboard moveToBoard = uint64_t(1) << move.mMoveTo;
+	Bitboard moveFromBoard = uint64_t(1) << move.mMoveFrom;
+	
+	mBoard[move.mPiece] |= moveFromBoard; //add the piece where it came from
+	mBoard[move.mPiece] &= ~moveToBoard; //remove the piece where it move to
+	if(move.mCaptured != Piece::NO_PIECE)
+	{
+		if(/*(move.mPiece == Piece::PAWN) &&*/ move.mOnPassantBoard)//if last move was a on passant capture		
+		mBoard[move.mCaptured] |= move.mOnPassantBoard;//if last move was a on passant capture
+		
+		else mBoard[move.mCaptured] |= moveToBoard;//add the captured piece back to the board
+	}
+
+	if(move.mPromoteTo != Piece::NO_PIECE)//if last move was a promotion
+	{
+		//remove the promoted piece from its board
+		mBoard[move.mPromoteTo] = mBoard[move.mPromoteTo] & ~moveToBoard;
+	}
 }

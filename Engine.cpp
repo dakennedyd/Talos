@@ -26,6 +26,20 @@ Bitboard Engine::checkIfOnPassantPossibleOnNextMove(const Square a, const Square
 	
 	return 0x0;
 }
+
+Piece Engine::getPieceFromSquare(const Square square)
+{
+	Bitboard pieceBoard = uint64_t(1) << square;
+	Bitboard p;
+	int i = 0;
+	for(i = 0; i<7; i++)
+	{
+		p = chessboard.mBoard[i+chessboard.mPlayerToMove];
+		if(p & pieceBoard) return Piece(i+chessboard.mPlayerToMove);
+	}
+	return Piece::NO_PIECE;
+}
+
 Engine::Engine()
 {	
 	mPossibleMoves.reserve(100);
@@ -53,7 +67,7 @@ void Engine::whitePawnMoves()
 	auto movesOneSquare = getBitsPosition(p1);
 	for (auto &i : movesOneSquare)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 8), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -64,7 +78,7 @@ void Engine::whitePawnMoves()
 	auto movesTwoSquares = getBitsPosition(p2);
 	for (auto &i : movesTwoSquares)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 16), Square(i),Piece::NO_PIECE, i << 8));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 16), Square(i),Piece::NO_PIECE, i << 8));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -78,7 +92,7 @@ void Engine::whitePawnMoves()
 	auto captureRightBits = getBitsPosition(captureRight);
 	for (auto &i : captureRightBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -90,7 +104,7 @@ void Engine::whitePawnMoves()
 	auto captureLeftBits = getBitsPosition(captureLeft);
 	for (auto &i : captureLeftBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 	//------------ON PASSANT CAPTURE---------------
@@ -102,7 +116,7 @@ void Engine::whitePawnMoves()
 	auto opCaptureRightBits = getBitsPosition(opCaptureRight);
 	for (auto &i : opCaptureRightBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -113,7 +127,7 @@ void Engine::whitePawnMoves()
 	auto opCaptureLeftBits = getBitsPosition(opCaptureLeft);
 	for (auto &i : opCaptureLeftBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -130,10 +144,10 @@ void Engine::whitePawnMoves()
 	auto promotedPawnBits = getBitsPosition(promotedPawn);
 	for (auto &i : promotedPawnBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i + 8), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i + 8), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i + 8), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i + 8), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::BISHOP));
 	}
 
 	capturePromotionR = capturePromotionR >> 9;
@@ -142,10 +156,10 @@ void Engine::whitePawnMoves()
 	auto capturePromotionRBits = getBitsPosition(capturePromotionR);
 	for (auto &i : capturePromotionRBits)
 	{		
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i + 9), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::BISHOP));
 		//mPossibleMoves.back().printMove();
 	}
 	
@@ -155,10 +169,10 @@ void Engine::whitePawnMoves()
 	auto capturePromotionLBits = getBitsPosition(capturePromotionL);
 	for (auto &i : capturePromotionLBits)
 	{		
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i + 7), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::BISHOP));
 		//mPossibleMoves.back().printMove();
 	}
 }
@@ -174,8 +188,7 @@ void Engine::blackPawnMoves()
 	auto movesOneSquare = getBitsPosition(p1);
 	for (auto &i : movesOneSquare)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i)));
-		//mPossibleMoves.back().printMove();
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i)));
 	}
 
 	p2 = (chessboard.mBoard[BLACK_PAWNS_BOARD] & RANK7) << 8;
@@ -185,7 +198,7 @@ void Engine::blackPawnMoves()
 	auto movesTwoSquares = getBitsPosition(p2);
 	for (auto &i : movesTwoSquares)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 16), Square(i),Piece::NO_PIECE, i >> 8));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 16), Square(i),Piece::NO_PIECE, i >> 8));
 	}
 
 	//------------CAPTURE----------------------
@@ -198,7 +211,7 @@ void Engine::blackPawnMoves()
 	auto captureRightBits = getBitsPosition(captureRight);
 	for (auto &i : captureRightBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -210,7 +223,7 @@ void Engine::blackPawnMoves()
 	auto captureLeftBits = getBitsPosition(captureLeft);
 	for (auto &i : captureLeftBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 	//------------ON PASSANT CAPTURE---------------
@@ -222,7 +235,7 @@ void Engine::blackPawnMoves()
 	auto opCaptureRightBits = getBitsPosition(opCaptureRight);
 	for (auto &i : opCaptureRightBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -233,7 +246,7 @@ void Engine::blackPawnMoves()
 	auto opCaptureLeftBits = getBitsPosition(opCaptureLeft);
 	for (auto &i : opCaptureLeftBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i)));
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -250,10 +263,10 @@ void Engine::blackPawnMoves()
 	auto promotedPawnBits = getBitsPosition(promotedPawn);
 	for (auto &i : promotedPawnBits)
 	{
-		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i - 8), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::BISHOP));
 	}
 
 	capturePromotionR = capturePromotionR << 7;
@@ -262,10 +275,10 @@ void Engine::blackPawnMoves()
 	auto capturePromotionRBits = getBitsPosition(capturePromotionR);
 	for (auto &i : capturePromotionRBits)
 	{		
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i - 7), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::BISHOP));
 		//mPossibleMoves.back().printMove();
 	}
 	
@@ -275,10 +288,10 @@ void Engine::blackPawnMoves()
 	auto capturePromotionLBits = getBitsPosition(capturePromotionL);
 	for (auto &i : capturePromotionLBits)
 	{		
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::QUEEN));
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::ROOK));
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::KNIGHT));
-		mPossibleMoves.emplace_back(Move(Square(i - 9), Square(i),Piece::BISHOP));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::QUEEN));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::ROOK));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::KNIGHT));
+		mPossibleMoves.emplace_back(Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::BISHOP));
 		//mPossibleMoves.back().printMove();
 	}
 }
@@ -306,28 +319,28 @@ void Engine::whiteKnightMoves()
 	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
 	
 	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 15), Square(i)));
+	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 15), Square(i)));
 	
 	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 6), Square(i)));
+	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 6), Square(i)));
 	
 	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 10), Square(i)));
+	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 10), Square(i)));
 
 	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 17), Square(i)));
+	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 17), Square(i)));
 
 	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 15), Square(i)));
+	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 15), Square(i)));
 
 	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 6), Square(i)));
+	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 6), Square(i)));
 
 	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 10), Square(i)));
+	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 10), Square(i)));
 
 	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 17), Square(i)));
+	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 17), Square(i)));
 
 }
 
@@ -354,28 +367,28 @@ void Engine::blackKnightMoves()
 	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
 	
 	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 15), Square(i)));
+	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 15), Square(i)));
 	
 	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Square(i + 6), Square(i)));
+	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 6), Square(i)));
 	
 	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 10), Square(i)));
+	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 10), Square(i)));
 
 	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 17), Square(i)));
+	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 17), Square(i)));
 
 	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 15), Square(i)));
+	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 15), Square(i)));
 
 	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i - 6), Square(i)));
+	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 6), Square(i)));
 
 	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 10), Square(i)));
+	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 10), Square(i)));
 
 	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Square(i + 17), Square(i)));
+	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 17), Square(i)));
 }
 
 void Engine::whiteRookMoves()
@@ -441,7 +454,7 @@ void Engine::whiteRookMoves()
 		
 		auto rookAttackBits = getBitsPosition(rookAttack);
 		for (auto &i : rookAttackBits) 
-			mPossibleMoves.emplace_back(Move(Square(rookBitPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::ROOK, Player::WHITE, Square(rookBitPos), Square(i)));
 	}
 }
 
@@ -508,7 +521,7 @@ void Engine::blackRookMoves()
 		
 		auto rookAttackBits = getBitsPosition(rookAttack);
 		for (auto &i : rookAttackBits) 
-			mPossibleMoves.emplace_back(Move(Square(rookBitPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::ROOK, Player::BLACK, Square(rookBitPos), Square(i)));
 	}
 }
 
@@ -575,7 +588,7 @@ void Engine::whiteBishopMoves()
 		
 		auto bishopAttackBits = getBitsPosition(bishopAttack);
 		for (auto &i : bishopAttackBits) 
-			mPossibleMoves.emplace_back(Move(Square(bishopBitPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::BISHOP, Player::WHITE, Square(bishopBitPos), Square(i)));
 	}
 }
 
@@ -642,7 +655,7 @@ void Engine::blackBishopMoves()
 		
 		auto bishopAttackBits = getBitsPosition(bishopAttack);
 		for (auto &i : bishopAttackBits) 
-			mPossibleMoves.emplace_back(Move(Square(bishopBitPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::BISHOP, Player::BLACK, Square(bishopBitPos), Square(i)));
 	}
 }
 
@@ -761,7 +774,7 @@ void Engine::whiteQueenMoves()
 		
 		auto queenAttacksBits = getBitsPosition(queenAttacks);
 		for (auto &i : queenAttacksBits) 
-			mPossibleMoves.emplace_back(Move(Square(queenBitsPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::QUEEN, Player::WHITE, Square(queenBitsPos), Square(i)));
 	}
 }
 
@@ -880,7 +893,7 @@ void Engine::blackQueenMoves()
 		
 		auto queenAttacksBits = getBitsPosition(queenAttacks);
 		for (auto &i : queenAttacksBits) 
-			mPossibleMoves.emplace_back(Move(Square(queenBitsPos), Square(i)));
+			mPossibleMoves.emplace_back(Move(Piece::QUEEN, Player::BLACK, Square(queenBitsPos), Square(i)));
 	}
 }
 
@@ -905,17 +918,17 @@ void Engine::whiteKingMoves()
 	kingAttacks = kingAttacks | (kingBoard << 9);
 	kingAttacks = kingAttacks | (kingBoard << 8);
 	kingAttacks = kingAttacks | (kingBoard << 7);
-	chessboard.printBitboard(kingAttacks);
+	//chessboard.printBitboard(kingAttacks);
 
 	//can't capture own pieces
 	Bitboard temp = kingAttacks & chessboard.mBoard[WHITE_PIECES_BOARD];
 	kingAttacks = kingAttacks & ~temp;
-	chessboard.printBitboard(kingAttacks);
+	//chessboard.printBitboard(kingAttacks);
 
 	auto kingAttacksBits = getBitsPosition(kingAttacks);
 	auto kingBitPos = getBitsPosition(kingBoard);
 	for (auto &i : kingAttacksBits) 
-		mPossibleMoves.emplace_back(Move(Square(kingBitPos[0]), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::KING, Player::WHITE, Square(kingBitPos[0]), Square(i)));
 }
 
 void Engine::blackKingMoves()
@@ -939,17 +952,17 @@ void Engine::blackKingMoves()
 	kingAttacks = kingAttacks | (kingBoard << 9);
 	kingAttacks = kingAttacks | (kingBoard << 8);
 	kingAttacks = kingAttacks | (kingBoard << 7);
-	chessboard.printBitboard(kingAttacks);
+	//chessboard.printBitboard(kingAttacks);
 	
 	//can't capture own pieces
 	Bitboard temp = kingAttacks & chessboard.mBoard[BLACK_PIECES_BOARD];
 	kingAttacks = kingAttacks & ~temp;
-	chessboard.printBitboard(kingAttacks);
+	//chessboard.printBitboard(kingAttacks);
 
 	auto kingAttacksBits = getBitsPosition(kingAttacks);
 	auto kingBitPos = getBitsPosition(kingBoard);
 	for (auto &i : kingAttacksBits) 
-		mPossibleMoves.emplace_back(Move(Square(kingBitPos[0]), Square(i)));
+		mPossibleMoves.emplace_back(Move(Piece::KING, Player::BLACK, Square(kingBitPos[0]), Square(i)));
 }
 
 void Engine::uci()
@@ -1012,8 +1025,8 @@ void Engine::uci()
 						for (int i = 3; i < command.size(); ++i)
 						{
 							//todo: check for input errors!
-							auto a = SQUARE_STR_TO_NUM[command[i].substr(0, 2)];
-							auto b = SQUARE_STR_TO_NUM[command[i].substr(2,2)];
+							auto a = STR_TO_SQUARE[command[i].substr(0, 2)];
+							auto b = STR_TO_SQUARE[command[i].substr(2,2)];
 							auto p = command[i].substr(4);
 							Piece promoted = Piece::NO_PIECE;
 							if(p == "q") promoted = Piece::QUEEN;
@@ -1021,11 +1034,13 @@ void Engine::uci()
 							if(p == "b") promoted = Piece::BISHOP;
 							if(p == "n") promoted = Piece::KNIGHT;
 							// auto m = Move(a, b);
+							
 
 							auto op = checkIfOnPassantPossibleOnNextMove(a,b);
-							chessboard.makeMove(Move(a, b, promoted, op));
+							auto piece = getPieceFromSquare(a);
+							chessboard.makeMove(Move(piece, chessboard.mPlayerToMove, a, b, promoted, op));
 							// chessboard.makeMove(
-							// 	Move(SQUARE_STR_TO_NUM[command[i].substr(0, 2)], SQUARE_STR_TO_NUM[command[i].substr(2)]));
+							// 	Move(STR_TO_SQUARE[command[i].substr(0, 2)], STR_TO_SQUARE[command[i].substr(2)]));
 						}
 					}
 					validcommand = true;

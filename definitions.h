@@ -13,7 +13,7 @@
 typedef uint64_t Bitboard;
 
 enum Player {WHITE = 0, BLACK = 6};
-enum Piece {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NO_PIECE};
+enum Piece {PAWN = 0, KNIGHT = 2, BISHOP = 3, ROOK = 1, QUEEN = 5, KING = 4, NO_PIECE = 64};
 
 static Bitboard AFILE = 0x0101010101010101;
 static Bitboard BFILE = AFILE << 1;
@@ -82,7 +82,7 @@ template <> struct hash<Square> {
 };
 }
 
-static std::unordered_map<enum Square, std::string> SQUARE_NUM_TO_STR = 
+static std::unordered_map<enum Square, std::string> SQUARE_TO_STR = 
 { 
 { A1,"a1" },{ B1,"b1" },{ C1,"c1" },{ D1,"d1" },
 { E1,"e1" },{ F1,"f1" },{ G1,"g1" },{ H1,"h1" },
@@ -102,7 +102,7 @@ static std::unordered_map<enum Square, std::string> SQUARE_NUM_TO_STR =
 { E8,"e8" },{ F8,"f8" },{ G8,"g8" },{ H8,"h8" }
 };
 
-static std::unordered_map<std::string, enum Square> SQUARE_STR_TO_NUM =
+static std::unordered_map<std::string, enum Square> STR_TO_SQUARE =
 { { "a1",A1 },{ "b1",B1 },{ "c1",C1 },{ "d1",D1 },
 { "e1",E1 },{ "f1",F1 },{ "g1",G1 },{ "h1",H1 },
 { "a2",A2 },{ "b2",B2 },{ "c2",C2 },{ "d2",D2 },

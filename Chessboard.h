@@ -16,14 +16,16 @@ public:
 	void reset();
 
 	//changes state on the internal board does not check if it is legal or not
-	void makeMove(Move move);
+	void makeMove(const Move &move);
+	void unmakeMove(const Move &move);
 
-	void makeMove();
 //private:	
 	void printBitboard(const Bitboard bitboard);
 	void printBitboards();
-	//enum Player mPlayerToMove = Player::WHITE;
-	unsigned int mPlayerToMove = Player::WHITE;
+	enum Player mPlayerToMove = Player::WHITE;
+	enum Piece mLastCapturedPiece = Piece::NO_PIECE;
+	enum Piece mLastPromotedPiece = Piece::NO_PIECE;
+	//unsigned int mPlayerToMove = Player::WHITE;
 
 	std::vector<Bitboard> mBoard;	
 	std::queue<Move> mHistory;

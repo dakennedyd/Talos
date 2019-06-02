@@ -11,19 +11,6 @@ class Engine
 public:
 	Engine();
 	~Engine();
-	void pawnMoves(const enum Player side);
-	void whitePawnMoves();
-	void whiteKnightMoves();
-	void whiteRookMoves();
-	void whiteBishopMoves();
-	void whiteQueenMoves();
-	void whiteKingMoves();
-	void blackPawnMoves();
-	void blackKnightMoves();
-	void blackRookMoves();
-	void blackBishopMoves();
-	void blackQueenMoves();
-	void blackKingMoves();
 	void uci();
 	void printInfo();
 	void generateMoves();
@@ -36,10 +23,10 @@ public:
 		return intDist(randomEngine);
 	}
 
-	Move stringToMove(const std::string &str)
-	{
-		return Move(SQUARE_STR_TO_NUM[str.substr(0, 2)], SQUARE_STR_TO_NUM[str.substr(2)]);
-	}
+	// Move stringToMove(const std::string &str)
+	// {
+	// 	return Move(STR_TO_SQUARE[str.substr(0, 2)], STR_TO_SQUARE[str.substr(2)]);
+	// }
 
 	//enum Player mPlayerToMove = Player::WHITE;
 
@@ -53,6 +40,18 @@ public:
 
 	Chessboard & getChessBoard(){return chessboard;};
 private:
+	void whitePawnMoves();
+	void whiteKnightMoves();
+	void whiteRookMoves();
+	void whiteBishopMoves();
+	void whiteQueenMoves();
+	void whiteKingMoves();
+	void blackPawnMoves();
+	void blackKnightMoves();
+	void blackRookMoves();
+	void blackBishopMoves();
+	void blackQueenMoves();
+	void blackKingMoves();
 	/**
 	 * @brief precalculates rays for sliding pieces for each square on the board
 	 * 
@@ -61,6 +60,7 @@ private:
 	
 	void debugPrint(const Bitboard n);
 	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
+	Piece getPieceFromSquare(const Square square);
 	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };
