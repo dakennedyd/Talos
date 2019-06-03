@@ -1002,7 +1002,9 @@ void Engine::uci()
 			}
 			if (command[0] == "pbb" || command[0] == "printbitboards")
 			{
-				chessboard.printBitboards();
+				//chessboard.printBitboards();
+				checkIfSquaresAreAttackedByWhite(Bitboard(0));
+				checkIfSquaresAreAttackedByBlack(Bitboard(0));
 				validcommand = true;
 			}			
 			if (command[0] == "quit")
@@ -1187,5 +1189,690 @@ void Engine::generateRays()
 	// 	}
 	// 	std::cout << "\n\n";
 	// }	
+}
+
+bool Engine::checkIfSquaresAreAttackedByWhite(const Bitboard squares)
+{
+	Bitboard attackedSquares = 0;
+
+	//PAWN
+	{		
+		//------------CAPTURE----------------------
+		Bitboard captureLeft, captureRight;
+		captureRight = chessboard.mBoard[WHITE_PAWNS_BOARD];
+		captureRight = captureRight >> 9;
+		captureRight = captureRight & (~HFILE);
+		attackedSquares |= captureRight;
+
+		captureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
+		captureLeft = captureLeft >> 7;
+		captureLeft = captureLeft & (~AFILE);
+		attackedSquares |= captureLeft;
+
+		//------------ON PASSANT CAPTURE---------------
+		Bitboard opCaptureLeft, opCaptureRight;
+		opCaptureRight = chessboard.mBoard[WHITE_PAWNS_BOARD];
+		opCaptureRight = opCaptureRight >> 9;
+		opCaptureRight = opCaptureRight & (~HFILE);
+		opCaptureRight = opCaptureRight & chessboard.mBoard[ONPASSANT_BOARD];
+		attackedSquares |= opCaptureRight;
+
+		opCaptureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
+		opCaptureLeft = opCaptureLeft >> 7;
+		opCaptureLeft = opCaptureLeft & (~AFILE);
+		opCaptureLeft = opCaptureLeft & chessboard.mBoard[ONPASSANT_BOARD];
+		attackedSquares |= opCaptureLeft;
+		
+	}
+
+	//KNIGHT
+	{
+		Bitboard knightsBoard = chessboard.mBoard[WHITE_KNIGHTS_BOARD];
+		Bitboard elevenOClockAttack = knightsBoard >> 17;
+		Bitboard tenOClockAttack = knightsBoard >> 10;
+		Bitboard eightOClockAttack = knightsBoard << 6;
+		Bitboard sevenOClockAttack = knightsBoard << 15;
+		Bitboard fiveOClockAttack = knightsBoard << 17;
+		Bitboard fourOClockAttack = knightsBoard << 10;
+		Bitboard twoOClockAttack = knightsBoard >> 6;
+		Bitboard oneOClockAttack = knightsBoard >> 15;
+
+		//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
+		oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));
+		twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
+		fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
+		fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
+		sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
+		eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
+		tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
+		elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
+		
+		// oneOClockAttack = oneOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// twoOClockAttack = twoOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// fourOClockAttack = fourOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// fiveOClockAttack = fiveOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// sevenOClockAttack = sevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// eightOClockAttack = eightOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// tenOClockAttack = tenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+		// elevenOClockAttack = elevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
+				
+		attackedSquares = attackedSquares | oneOClockAttack | twoOClockAttack | fourOClockAttack |
+			fiveOClockAttack | sevenOClockAttack | eightOClockAttack | tenOClockAttack | elevenOClockAttack;
+	}
+
+	//ROOK
+	{
+		auto rookBits = getBitsPosition(chessboard.mBoard[WHITE_ROOKS_BOARD]);
+		for (auto rookBitPos : rookBits) //for every white rook on the board
+		{
+			Bitboard rookAttack = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH ATTACK
+				temp = attackRays[rookBitPos][NORTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH];
+				temp = attackRays[rookBitPos][NORTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//EAST ATTACK
+				temp = attackRays[rookBitPos][EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][EAST];
+				temp = attackRays[rookBitPos][EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//SOUTH ATTACK
+				temp = attackRays[rookBitPos][SOUTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH];
+				temp = attackRays[rookBitPos][SOUTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//WEST ATTACK
+				temp = attackRays[rookBitPos][WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][WEST];
+				temp = attackRays[rookBitPos][WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			
+			attackedSquares |= rookAttack;
+		}
+	}
+
+	//BISHOP
+	{
+		auto bishopBits = getBitsPosition(chessboard.mBoard[WHITE_BISHOPS_BOARD]);
+		for (auto bishopBitPos : bishopBits) //for every white rook on the board
+		{
+			Bitboard bishopAttack = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH-EAST ATTACK
+				temp = attackRays[bishopBitPos][NORTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_EAST];
+				temp = attackRays[bishopBitPos][NORTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//SOUTH-EAST ATTACK
+				temp = attackRays[bishopBitPos][SOUTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_EAST];
+				temp = attackRays[bishopBitPos][SOUTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//SOUTH-WEST ATTACK
+				temp = attackRays[bishopBitPos][SOUTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_WEST];
+				temp = attackRays[bishopBitPos][SOUTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//NORTH-WEST ATTACK
+				temp = attackRays[bishopBitPos][NORTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_WEST];
+				temp = attackRays[bishopBitPos][NORTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			
+			attackedSquares |= bishopAttack;
+		}
+	}
+
+	//QUEEN
+	{
+		auto queenBits = getBitsPosition(chessboard.mBoard[WHITE_QUEEN_BOARD]);
+		for (auto queenBitsPos : queenBits) //for every white rook on the board
+		{
+			Bitboard queenAttacks = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH ATTACK
+				temp = attackRays[queenBitsPos][NORTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH];
+				temp = attackRays[queenBitsPos][NORTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//EAST ATTACK
+				temp = attackRays[queenBitsPos][EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][EAST];
+				temp = attackRays[queenBitsPos][EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH ATTACK
+				temp = attackRays[queenBitsPos][SOUTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH];
+				temp = attackRays[queenBitsPos][SOUTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//WEST ATTACK
+				temp = attackRays[queenBitsPos][WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][WEST];
+				temp = attackRays[queenBitsPos][WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//NORTH-EAST ATTACK
+				temp = attackRays[queenBitsPos][NORTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_EAST];
+				temp = attackRays[queenBitsPos][NORTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH-EAST ATTACK
+				temp = attackRays[queenBitsPos][SOUTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_EAST];
+				temp = attackRays[queenBitsPos][SOUTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH-WEST ATTACK
+				temp = attackRays[queenBitsPos][SOUTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_WEST];
+				temp = attackRays[queenBitsPos][SOUTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//NORTH-WEST ATTACK
+				temp = attackRays[queenBitsPos][NORTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_WEST];
+				temp = attackRays[queenBitsPos][NORTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			
+			attackedSquares |= queenAttacks;
+		}
+	}
+
+	//KING
+	{
+		Bitboard kingBoard = chessboard.mBoard[WHITE_KING_BOARD];
+		Bitboard kingAttacks = 0;
+
+		kingAttacks = kingAttacks | (kingBoard >> 7);
+		kingAttacks = kingAttacks | (kingBoard >> 8);
+		kingAttacks = kingAttacks | (kingBoard >> 9);
+		kingAttacks = kingAttacks | (kingBoard >> 1);
+		kingAttacks = kingAttacks | (kingBoard << 1);
+		kingAttacks = kingAttacks | (kingBoard << 9);
+		kingAttacks = kingAttacks | (kingBoard << 8);
+		kingAttacks = kingAttacks | (kingBoard << 7);
+		//chessboard.printBitboard(kingAttacks);
+
+		//can't capture own pieces
+		Bitboard temp = kingAttacks & chessboard.mBoard[WHITE_PIECES_BOARD];
+		kingAttacks = kingAttacks & ~temp;
+		//chessboard.printBitboard(kingAttacks);
+		
+		attackedSquares |= kingAttacks;
+	}
+
+	chessboard.printBitboard(attackedSquares);
+	if(attackedSquares) return true;
+	else return false;
+}
+
+bool Engine::checkIfSquaresAreAttackedByBlack(const Bitboard squares)
+{
+	Bitboard attackedSquares = 0;
+
+	//PAWN
+	{
+		//------------CAPTURE----------------------
+		Bitboard captureLeft, captureRight;
+		captureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
+		captureRight = captureRight << 7;
+		captureRight = captureRight & (~HFILE);
+		attackedSquares |= captureRight;
+
+		captureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
+		captureLeft = captureLeft << 9;
+		captureLeft = captureLeft & (~AFILE);
+		attackedSquares |= captureLeft;
+
+		//------------ON PASSANT CAPTURE---------------
+		Bitboard opCaptureLeft, opCaptureRight;
+		opCaptureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
+		opCaptureRight = opCaptureRight << 7;
+		opCaptureRight = opCaptureRight & (~HFILE);
+		opCaptureRight = opCaptureRight & chessboard.mBoard[ONPASSANT_BOARD];
+		attackedSquares |= opCaptureRight;
+
+		opCaptureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
+		opCaptureLeft = opCaptureLeft << 9;
+		opCaptureLeft = opCaptureLeft & (~AFILE);
+		opCaptureLeft = opCaptureLeft & chessboard.mBoard[ONPASSANT_BOARD];
+		attackedSquares |= opCaptureLeft;
+	}
+
+	//KNIGHT
+	{
+		Bitboard knightsBoard = chessboard.mBoard[BLACK_KNIGHTS_BOARD];
+		Bitboard elevenOClockAttack = knightsBoard >> 17;
+		Bitboard tenOClockAttack = knightsBoard >> 10;
+		Bitboard eightOClockAttack = knightsBoard << 6;
+		Bitboard sevenOClockAttack = knightsBoard << 15;
+		Bitboard fiveOClockAttack = knightsBoard << 17;
+		Bitboard fourOClockAttack = knightsBoard << 10;
+		Bitboard twoOClockAttack = knightsBoard >> 6;
+		Bitboard oneOClockAttack = knightsBoard >> 15;
+
+		//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
+		oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));	
+		twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
+		fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
+		fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
+		sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
+		eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
+		tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
+		elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
+
+		attackedSquares = attackedSquares | oneOClockAttack | twoOClockAttack | fourOClockAttack |
+			fiveOClockAttack | sevenOClockAttack | eightOClockAttack | tenOClockAttack | elevenOClockAttack;
+	}
+
+	//ROOK
+	{
+		auto rookBits = getBitsPosition(chessboard.mBoard[BLACK_ROOKS_BOARD]);
+		for (auto rookBitPos : rookBits) //for every white rook on the board
+		{
+			Bitboard rookAttack = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH ATTACK
+				temp = attackRays[rookBitPos][NORTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH];
+				temp = attackRays[rookBitPos][NORTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//EAST ATTACK
+				temp = attackRays[rookBitPos][EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][EAST];
+				temp = attackRays[rookBitPos][EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//SOUTH ATTACK
+				temp = attackRays[rookBitPos][SOUTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH];
+				temp = attackRays[rookBitPos][SOUTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			{
+				//WEST ATTACK
+				temp = attackRays[rookBitPos][WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][WEST];
+				temp = attackRays[rookBitPos][WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(rookAttack);
+			}
+			attackedSquares |= rookAttack;
+		}
+	}
+
+	//BISHOP
+	{
+		auto bishopBits = getBitsPosition(chessboard.mBoard[BLACK_BISHOPS_BOARD]);
+		for (auto bishopBitPos : bishopBits) //for every white rook on the board
+		{
+			Bitboard bishopAttack = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH-EAST ATTACK
+				temp = attackRays[bishopBitPos][NORTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_EAST];
+				temp = attackRays[bishopBitPos][NORTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//SOUTH-EAST ATTACK
+				temp = attackRays[bishopBitPos][SOUTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_EAST];
+				temp = attackRays[bishopBitPos][SOUTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//SOUTH-WEST ATTACK
+				temp = attackRays[bishopBitPos][SOUTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_WEST];
+				temp = attackRays[bishopBitPos][SOUTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			{
+				//NORTH-WEST ATTACK
+				temp = attackRays[bishopBitPos][NORTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_WEST];
+				temp = attackRays[bishopBitPos][NORTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				bishopAttack = bishopAttack | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(bishopAttack);
+			}
+			
+			attackedSquares |= bishopAttack;
+		}
+	}
+
+	//QUEEN
+	{
+		auto queenBits = getBitsPosition(chessboard.mBoard[BLACK_QUEEN_BOARD]);
+		for (auto queenBitsPos : queenBits) //for every white rook on the board
+		{
+			Bitboard queenAttacks = 0, temp;
+			Square firstBlocker;
+			
+			{
+				//NORTH ATTACK
+				temp = attackRays[queenBitsPos][NORTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH];
+				temp = attackRays[queenBitsPos][NORTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//EAST ATTACK
+				temp = attackRays[queenBitsPos][EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][EAST];
+				temp = attackRays[queenBitsPos][EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH ATTACK
+				temp = attackRays[queenBitsPos][SOUTH] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH];
+				temp = attackRays[queenBitsPos][SOUTH] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//WEST ATTACK
+				temp = attackRays[queenBitsPos][WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][WEST];
+				temp = attackRays[queenBitsPos][WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//NORTH-EAST ATTACK
+				temp = attackRays[queenBitsPos][NORTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_EAST];
+				temp = attackRays[queenBitsPos][NORTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH-EAST ATTACK
+				temp = attackRays[queenBitsPos][SOUTH_EAST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_EAST];
+				temp = attackRays[queenBitsPos][SOUTH_EAST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//SOUTH-WEST ATTACK
+				temp = attackRays[queenBitsPos][SOUTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getLowestSetBit(temp);
+				temp = attackRays[firstBlocker][SOUTH_WEST];
+				temp = attackRays[queenBitsPos][SOUTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			{
+				//NORTH-WEST ATTACK
+				temp = attackRays[queenBitsPos][NORTH_WEST] & chessboard.mBoard[ALL_PIECES_BOARD];
+				firstBlocker = getHighestSetBit(temp);
+				temp = attackRays[firstBlocker][NORTH_WEST];
+				temp = attackRays[queenBitsPos][NORTH_WEST] & ~temp;
+
+				//can't capture own pieces
+				Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
+				firstBlockerBitboard &= chessboard.mBoard[BLACK_PIECES_BOARD];
+				queenAttacks = queenAttacks | (temp & ~firstBlockerBitboard);
+				//chessboard.printBitboard(queenAttacks);
+			}
+			
+			attackedSquares |= queenAttacks;
+		}
+	}
+
+	//KING
+	{
+		Bitboard kingBoard = chessboard.mBoard[BLACK_KING_BOARD];
+		Bitboard kingAttacks = 0;
+
+		// kingAttacks = kingAttacks | ((kingBoard & ~RANK8) >> 8);
+		// kingAttacks = kingAttacks | (((kingBoard & ~RANK8) & ~AFILE) >> 7);
+		// kingAttacks = kingAttacks | (((kingBoard & ~RANK8) & ~HFILE) >> 9);
+		// kingAttacks = kingAttacks | ((kingBoard & ~HFILE) >> 1);
+		// kingAttacks = kingAttacks | ((kingBoard & ~AFILE) << 1);
+		// kingAttacks = kingAttacks | ((kingBoard & ~RANK1) << 8);
+		// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~HFILE) << 9);
+		// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);
+		kingAttacks = kingAttacks | (kingBoard >> 7);
+		kingAttacks = kingAttacks | (kingBoard >> 8);
+		kingAttacks = kingAttacks | (kingBoard >> 9);
+		kingAttacks = kingAttacks | (kingBoard >> 1);
+		kingAttacks = kingAttacks | (kingBoard << 1);
+		kingAttacks = kingAttacks | (kingBoard << 9);
+		kingAttacks = kingAttacks | (kingBoard << 8);
+		kingAttacks = kingAttacks | (kingBoard << 7);
+		//chessboard.printBitboard(kingAttacks);
+		
+		//can't capture own pieces
+		Bitboard temp = kingAttacks & chessboard.mBoard[BLACK_PIECES_BOARD];
+		kingAttacks = kingAttacks & ~temp;
+		//chessboard.printBitboard(kingAttacks);
+
+		attackedSquares |= kingAttacks;
+	}
+
+	chessboard.printBitboard(attackedSquares);
+	if(attackedSquares) return true;
+	else return false;
 }
 

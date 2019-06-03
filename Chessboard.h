@@ -17,7 +17,7 @@ public:
 
 	//changes state on the internal board does not check if it is legal or not
 	void makeMove(const Move &move);
-	void unmakeMove(const Move &move);
+	void unmakeMove();
 
 //private:	
 	void printBitboard(const Bitboard bitboard);

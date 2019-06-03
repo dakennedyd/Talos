@@ -40,6 +40,7 @@ public:
 
 	Chessboard & getChessBoard(){return chessboard;};
 private:
+	//void debugPrint(const Bitboard n);
 	void whitePawnMoves();
 	void whiteKnightMoves();
 	void whiteRookMoves();
@@ -52,13 +53,19 @@ private:
 	void blackBishopMoves();
 	void blackQueenMoves();
 	void blackKingMoves();
+
+	/**
+	 * @brief checks if any of the squares in the squares bitboard
+	 * is under attack by player if it is it returns true else false
+	 */
+	bool checkIfSquaresAreAttackedByWhite(const Bitboard squares);
+	bool checkIfSquaresAreAttackedByBlack(const Bitboard squares);
+
 	/**
 	 * @brief precalculates rays for sliding pieces for each square on the board
-	 * 
 	 */
 	void generateRays();
 	
-	void debugPrint(const Bitboard n);
 	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
 	Piece getPieceFromSquare(const Square square);
 	Chessboard chessboard;

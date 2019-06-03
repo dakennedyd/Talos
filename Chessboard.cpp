@@ -239,15 +239,47 @@ void Chessboard::makeMove(const Move &move)
 	//if move is a promotion place the new piece on the board
 	if (mPlayerToMove == Player::WHITE)
 	{
-		if(move.mPromoteTo == Piece::QUEEN) {mBoard[WHITE_QUEEN_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::QUEEN;}
-		if(move.mPromoteTo == Piece::ROOK) {mBoard[WHITE_ROOKS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::ROOK;}
-		if(move.mPromoteTo == Piece::BISHOP) {mBoard[WHITE_BISHOPS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::BISHOP;}
-		if(move.mPromoteTo == Piece::KNIGHT) {mBoard[WHITE_KNIGHTS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::KNIGHT;}
+		if(move.mPromoteTo == Piece::QUEEN)
+		{
+			mBoard[WHITE_QUEEN_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::QUEEN;
+		}
+		if(move.mPromoteTo == Piece::ROOK) 
+		{
+			mBoard[WHITE_ROOKS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::ROOK;
+		}
+		if(move.mPromoteTo == Piece::BISHOP) 
+		{
+			mBoard[WHITE_BISHOPS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::BISHOP;
+		}
+		if(move.mPromoteTo == Piece::KNIGHT)
+		{
+			mBoard[WHITE_KNIGHTS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::KNIGHT;
+		}
 	}else{
-		if(move.mPromoteTo == Piece::QUEEN) {mBoard[BLACK_QUEEN_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::QUEEN;}
-		if(move.mPromoteTo == Piece::ROOK) {mBoard[BLACK_ROOKS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::ROOK;}
-		if(move.mPromoteTo == Piece::BISHOP) {mBoard[BLACK_BISHOPS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::BISHOP;}
-		if(move.mPromoteTo == Piece::KNIGHT) {mBoard[BLACK_KNIGHTS_BOARD] |= moveToSquare; mLastPromotedPiece = Piece::KNIGHT;}
+		if(move.mPromoteTo == Piece::QUEEN) 
+		{
+			mBoard[BLACK_QUEEN_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::QUEEN;
+		}
+		if(move.mPromoteTo == Piece::ROOK) 
+		{
+			mBoard[BLACK_ROOKS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::ROOK;
+		}
+		if(move.mPromoteTo == Piece::BISHOP) 
+		{
+			mBoard[BLACK_BISHOPS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::BISHOP;
+		}
+		if(move.mPromoteTo == Piece::KNIGHT) 
+		{
+			mBoard[BLACK_KNIGHTS_BOARD] |= moveToSquare;
+			mLastPromotedPiece = Piece::KNIGHT;
+		}
 	}
 
 	//todo: calc move score
@@ -259,8 +291,11 @@ void Chessboard::makeMove(const Move &move)
 
 }
 
-void Chessboard::unmakeMove(const Move &move)
+void Chessboard::unmakeMove()
 {
+	auto move = mHistory.front();
+	mHistory.pop();
+	
 	Bitboard moveToBoard = uint64_t(1) << move.mMoveTo;
 	Bitboard moveFromBoard = uint64_t(1) << move.mMoveFrom;
 	
