@@ -16,7 +16,7 @@ public:
 	void reset();
 
 	//changes state on the internal board does not check if it is legal or not
-	void makeMove(const Move &move);
+	void makeMove(Move move);
 	void unmakeMove();
 
 //private:	

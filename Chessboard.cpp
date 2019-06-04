@@ -120,7 +120,7 @@ void Chessboard::printBitboards()
 		"BLACK_QUEEN_BOARD", 
 		"BLACK_PIECES_BOARD",
 		"ALL_PIECES_BOARD",
-		"ONPASSANT_BOARD"
+		"ENPASSANT_BOARD"
 	};
 	for(int n = 0; n< mBoard.size();n++)
 	{
@@ -150,7 +150,7 @@ void Chessboard::reset()
 	std::swap(mHistory, empty);	
 }
 
-void Chessboard::makeMove(const Move &move)
+void Chessboard::makeMove(Move move)
 {
 	mLastPromotedPiece = Piece::NO_PIECE;
 	mLastCapturedPiece = Piece::NO_PIECE;
@@ -163,8 +163,8 @@ void Chessboard::makeMove(const Move &move)
 	{
 		mBoard[BLACK_PIECES_BOARD] = (~moveToSquare) & mBoard[BLACK_PIECES_BOARD];		
 		
-		//if move is onPassant capture
-		if( (moveFromSquare & mBoard[WHITE_PAWNS_BOARD]) && (moveToSquare & mBoard[ONPASSANT_BOARD]) )
+		//if move is enPassant capture
+		if( (moveFromSquare & mBoard[WHITE_PAWNS_BOARD]) && (moveToSquare & mBoard[ENPASSANT_BOARD]) )
 		{
 			mBoard[BLACK_PIECES_BOARD] = mBoard[BLACK_PIECES_BOARD] & (~(moveToSquare << 8));
 			mBoard[BLACK_PAWNS_BOARD] = mBoard[BLACK_PAWNS_BOARD] & (~(moveToSquare << 8));
@@ -176,10 +176,10 @@ void Chessboard::makeMove(const Move &move)
 	{
 		mBoard[WHITE_PIECES_BOARD] = (~moveToSquare) & mBoard[WHITE_PIECES_BOARD];		
 
-		//if move is onPassant capture
+		//if move is enPassant capture
 		//auto x = moveFromSquare & mBoard[BLACK_PAWNS_BOARD];
-		//auto y = moveToSquare & mBoard[ONPASSANT_BOARD];
-		if( (moveFromSquare & mBoard[BLACK_PAWNS_BOARD]) && (moveToSquare & mBoard[ONPASSANT_BOARD] ) )
+		//auto y = moveToSquare & mBoard[ENPASSANT_BOARD];
+		if( (moveFromSquare & mBoard[BLACK_PAWNS_BOARD]) && (moveToSquare & mBoard[ENPASSANT_BOARD] ) )
 		{
 			mBoard[WHITE_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] & (~(moveToSquare >> 8));
 			mBoard[WHITE_PAWNS_BOARD] = mBoard[WHITE_PAWNS_BOARD] & (~(moveToSquare >> 8));
@@ -221,6 +221,7 @@ void Chessboard::makeMove(const Move &move)
 					//if(i == j) continue;
 					mBoard[j] = (~moveToSquare) & mBoard[j];
 					mLastCapturedPiece = Piece(j);
+					move.mCaptured = mLastCapturedPiece;
 				}
 			}
 			else
@@ -230,6 +231,7 @@ void Chessboard::makeMove(const Move &move)
 					//if(i == j) continue;
 					mBoard[j] = (~moveToSquare) & mBoard[j];
 					mLastCapturedPiece = Piece(j);
+					move.mCaptured = mLastCapturedPiece;
 				}
 			}
 		}
@@ -287,7 +289,7 @@ void Chessboard::makeMove(const Move &move)
 	//mPlayerToMove = !mPlayerToMove;
 	if(mPlayerToMove == Player::WHITE) mPlayerToMove = Player::BLACK;
 	else mPlayerToMove = Player::WHITE;
-	mBoard[ONPASSANT_BOARD] = move.mOnPassantBoard;
+	mBoard[ENPASSANT_BOARD] = move.menPassantBoard;
 
 }
 
@@ -303,8 +305,8 @@ void Chessboard::unmakeMove()
 	mBoard[move.mPiece] &= ~moveToBoard; //remove the piece where it move to
 	if(move.mCaptured != Piece::NO_PIECE)
 	{
-		if(/*(move.mPiece == Piece::PAWN) &&*/ move.mOnPassantBoard)//if last move was a on passant capture		
-		mBoard[move.mCaptured] |= move.mOnPassantBoard;//if last move was a on passant capture
+		if(/*(move.mPiece == Piece::PAWN) &&*/ move.menPassantBoard)//if last move was a on passant capture		
+		mBoard[move.mCaptured] |= move.menPassantBoard;//if last move was a on passant capture
 		
 		else mBoard[move.mCaptured] |= moveToBoard;//add the captured piece back to the board
 	}

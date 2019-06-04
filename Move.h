@@ -11,9 +11,9 @@ struct Move
 	Move(const enum Piece piece, const enum Player side,
 	const enum Square moveFrom, const enum Square moveTo,
 	const enum Piece piecePromotion = Piece::NO_PIECE,
-	const Bitboard onPassant = 0x0 )
+	const Bitboard enPassant = 0x0 )
 	: mMoveFrom(moveFrom), mMoveTo(moveTo), mPromoteTo(piecePromotion),
-	mOnPassantBoard(onPassant) {
+	menPassantBoard(enPassant) {
 		//SQUARE_TO_STR.emplace(std::pair<Square, std::string>{ A1,"a1" });
 	}
 	~Move() = default;
@@ -25,7 +25,7 @@ struct Move
 	Square mMoveTo;
 	Piece mPromoteTo;
 	double mScore = 0;
-	Bitboard mOnPassantBoard = 0;
+	Bitboard menPassantBoard = 0;
 	Piece mCaptured;
 };
 

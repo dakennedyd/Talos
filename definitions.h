@@ -58,7 +58,7 @@ static int BLACK_KING_BOARD = 11;
 static int BLACK_QUEEN_BOARD = 12;
 static int BLACK_PIECES_BOARD = 13;
 static int ALL_PIECES_BOARD = 14;
-static int ONPASSANT_BOARD = 15;
+static int ENPASSANT_BOARD = 15;
 
 enum Square {
 	A8, B8, C8, D8, E8, F8, G8, H8,

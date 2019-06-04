@@ -66,7 +66,7 @@ private:
 	 */
 	void generateRays();
 	
-	Bitboard checkIfOnPassantPossibleOnNextMove(const Square a, const Square b);
+	Bitboard checkIfenPassantPossibleOnNextMove(const Square a, const Square b);
 	Piece getPieceFromSquare(const Square square);
 	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
