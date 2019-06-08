@@ -68,6 +68,8 @@ private:
 	
 	Bitboard checkIfenPassantPossibleOnNextMove(const Square a, const Square b);
 	Piece getPieceFromSquare(const Square square);
+	//checks if move is a capture and set mCaptured to the captured piece
+	void setMoveCapture(Move &move);
 	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };

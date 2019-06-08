@@ -32,10 +32,10 @@ Piece Engine::getPieceFromSquare(const Square square)
 	Bitboard pieceBoard = uint64_t(1) << square;
 	Bitboard p;
 	int i = 0;
-	for(i = 0; i<7; i++)
+	for(i = 2; i<13; i+=2)
 	{
 		p = chessboard.mBoard[i+chessboard.mPlayerToMove];
-		if(p & pieceBoard) return Piece(i+chessboard.mPlayerToMove);
+		if(p & pieceBoard) return Piece(i);
 	}
 	return Piece::NO_PIECE;
 }
@@ -56,6 +56,27 @@ void Engine::init()
 	generateRays();
 }
 
+void Engine::setMoveCapture(Move &move)
+{
+	//Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
+	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
+	auto otherSide = (move.mSide + 1) % 2;
+
+	int i;
+	for(i = 2; i < 13; i+=2)
+	{
+		//auto n = chessboard.mBoard[i+move.mSide] & moveToSquare;
+		if(chessboard.mBoard[i+otherSide] & moveToSquare)
+		{
+			//auto x = getBitsPosition(n);
+			//move.mCaptured = Piece(x[0]);
+			move.mCaptured = Piece(i);
+			return;
+		}
+
+	}
+}
+
 void Engine::whitePawnMoves()
 {
 	Bitboard p1, p2;//, pTotal;
@@ -69,13 +90,11 @@ void Engine::whitePawnMoves()
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i));
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
-		//mPossibleMoves.back().printMove();
+		chessboard.unmakeMove();
 	}
 
 	p2 = (chessboard.mBoard[WHITE_PAWNS_BOARD] & RANK2) >> 8;
@@ -87,13 +106,11 @@ void Engine::whitePawnMoves()
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 16), Square(i),Piece::NO_PIECE, i << 8);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
-		//mPossibleMoves.back().printMove();
+		chessboard.unmakeMove();
 	}
 
 	//------------CAPTURE----------------------
@@ -107,14 +124,13 @@ void Engine::whitePawnMoves()
 	for (auto &i : captureRightBits)
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i));
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
-		//mPossibleMoves.back().printMove();
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 	}
 
 	captureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
@@ -126,16 +142,15 @@ void Engine::whitePawnMoves()
 	for (auto &i : captureLeftBits)
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i));
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
-		//mPossibleMoves.back().printMove();
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 	}
-	//------------ON PASSANT CAPTURE---------------
+	//------------EN PASSANT CAPTURE---------------
 	Bitboard opCaptureLeft, opCaptureRight;
 	opCaptureRight = chessboard.mBoard[WHITE_PAWNS_BOARD];
 	opCaptureRight = opCaptureRight >> 9;
@@ -145,14 +160,14 @@ void Engine::whitePawnMoves()
 	for (auto &i : opCaptureRightBits)
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i));
+		setMoveCapture(m);
+		m.enPassantCapture = true;
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
-		//mPossibleMoves.back().printMove();
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 	}
 
 	opCaptureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
@@ -163,14 +178,14 @@ void Engine::whitePawnMoves()
 	for (auto &i : opCaptureLeftBits)
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i));
+		setMoveCapture(m);
+		m.enPassantCapture = true;
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
-		//mPossibleMoves.back().printMove();
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 	}
 
 	//------------PROMOTION----------------------
@@ -188,39 +203,35 @@ void Engine::whitePawnMoves()
 	{
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::QUEEN);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::ROOK);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::KNIGHT);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 8), Square(i),Piece::BISHOP);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 	}
 
 	capturePromotionR = capturePromotionR >> 9;
@@ -230,40 +241,40 @@ void Engine::whitePawnMoves()
 	for (auto &i : capturePromotionRBits)
 	{		
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::QUEEN);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::ROOK);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::KNIGHT);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i),Piece::BISHOP);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 	
@@ -274,40 +285,40 @@ void Engine::whitePawnMoves()
 	for (auto &i : capturePromotionLBits)
 	{		
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::QUEEN);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::ROOK);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::KNIGHT);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::WHITE, Square(i + 7), Square(i),Piece::BISHOP);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 }
@@ -323,14 +334,13 @@ void Engine::blackPawnMoves()
 	auto movesOneSquare = getBitsPosition(p1);
 	for (auto &i : movesOneSquare)
 	{
-		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i));
+		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i));		
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 	}
 
 	p2 = (chessboard.mBoard[BLACK_PAWNS_BOARD] & RANK7) << 8;
@@ -342,12 +352,11 @@ void Engine::blackPawnMoves()
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 16), Square(i),Piece::NO_PIECE, i >> 8);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 	}
 
 	//------------CAPTURE----------------------
@@ -361,13 +370,13 @@ void Engine::blackPawnMoves()
 	for (auto &i : captureRightBits)
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i));
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -380,16 +389,16 @@ void Engine::blackPawnMoves()
 	for (auto &i : captureLeftBits)
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i));
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
-	//------------ON PASSANT CAPTURE---------------
+	//------------EN PASSANT CAPTURE---------------
 	Bitboard opCaptureLeft, opCaptureRight;
 	opCaptureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
 	opCaptureRight = opCaptureRight << 7;
@@ -399,13 +408,14 @@ void Engine::blackPawnMoves()
 	for (auto &i : opCaptureRightBits)
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i));
+		m.enPassantCapture = true;
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -417,13 +427,14 @@ void Engine::blackPawnMoves()
 	for (auto &i : opCaptureLeftBits)
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i));
+		m.enPassantCapture = true;
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 
@@ -442,39 +453,35 @@ void Engine::blackPawnMoves()
 	{
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::QUEEN);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::ROOK);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::KNIGHT);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 8), Square(i),Piece::BISHOP);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 	}
 
 	capturePromotionR = capturePromotionR << 7;
@@ -484,40 +491,40 @@ void Engine::blackPawnMoves()
 	for (auto &i : capturePromotionRBits)
 	{	
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::QUEEN);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::ROOK);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::KNIGHT);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 7), Square(i),Piece::BISHOP);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
-		}		
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 	
@@ -528,40 +535,40 @@ void Engine::blackPawnMoves()
 	for (auto &i : capturePromotionLBits)
 	{		
 		auto m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::QUEEN);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::ROOK);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::KNIGHT);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 
 		m = Move(Piece::PAWN, Player::BLACK, Square(i - 9), Square(i),Piece::BISHOP);
+		setMoveCapture(m);
 		chessboard.makeMove(m);
-		if(checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
 		{
-			chessboard.unmakeMove();
-		}else{
-			mPossibleMoves.emplace_back(m);
+			mPossibleMoves.emplace_back(m);		
 		}
+		chessboard.unmakeMove();
 		//mPossibleMoves.back().printMove();
 	}
 }
@@ -589,28 +596,107 @@ void Engine::whiteKnightMoves()
 	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
 	
 	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 15), Square(i)));
+	for (auto &i : oneOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i + 15), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 	
 	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 6), Square(i)));
+	for (auto &i : twoOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i + 6), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();		
+	}
 	
 	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 10), Square(i)));
+	for (auto &i : fourOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i - 10), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();		
+	}
 
 	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 17), Square(i)));
+	for (auto &i : fiveOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i - 17), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 
 	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 15), Square(i)));
-
+	for (auto &i : sevenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i - 15), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i - 6), Square(i)));
+	for (auto &i : eightOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i - 6), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 
 	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 10), Square(i)));
+	for (auto &i : tenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i + 10), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 
 	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]));
-	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::WHITE, Square(i + 17), Square(i)));
+	for (auto &i : elevenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::WHITE, Square(i + 17), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 
 }
 
@@ -637,28 +723,108 @@ void Engine::blackKnightMoves()
 	elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
 	
 	auto oneOClockAttackBits = getBitsPosition(oneOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : oneOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 15), Square(i)));
+	for (auto &i : oneOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i + 15), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 	
 	auto twoOClockAttackBits = getBitsPosition(twoOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : twoOClockAttackBits)	mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 6), Square(i)));
+	for (auto &i : twoOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i + 6), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();		
+	}
 	
 	auto fourOClockAttackBits = getBitsPosition(fourOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : fourOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 10), Square(i)));
+	for (auto &i : fourOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i - 10), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();				
+	}
 
 	auto fiveOClockAttackBits = getBitsPosition(fiveOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : fiveOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 17), Square(i)));
+	for (auto &i : fiveOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i - 17), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();						
+	}
 
 	auto sevenOClockAttackBits = getBitsPosition(sevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : sevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 15), Square(i)));
+	for (auto &i : sevenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i - 15), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 
 	auto eightOClockAttackBits = getBitsPosition(eightOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : eightOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i - 6), Square(i)));
+	for (auto &i : eightOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i - 6), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();		
+	}
 
 	auto tenOClockAttackBits = getBitsPosition(tenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : tenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 10), Square(i)));
+	for (auto &i : tenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i + 10), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();				
+	}
 
 	auto elevenOClockAttackBits = getBitsPosition(elevenOClockAttack & (~chessboard.mBoard[BLACK_PIECES_BOARD]));
-	for (auto &i : elevenOClockAttackBits) mPossibleMoves.emplace_back(Move(Piece::KNIGHT, Player::BLACK, Square(i + 17), Square(i)));
+	for (auto &i : elevenOClockAttackBits)
+	{
+		auto m = Move(Piece::KNIGHT, Player::BLACK, Square(i + 17), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}
 }
 
 void Engine::whiteRookMoves()
@@ -723,8 +889,17 @@ void Engine::whiteRookMoves()
 		}
 		
 		auto rookAttackBits = getBitsPosition(rookAttack);
-		for (auto &i : rookAttackBits) 
-			mPossibleMoves.emplace_back(Move(Piece::ROOK, Player::WHITE, Square(rookBitPos), Square(i)));
+		for (auto &i : rookAttackBits)
+		{
+			auto m = Move(Piece::ROOK, Player::WHITE, Square(rookBitPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}
 	}
 }
 
@@ -790,8 +965,17 @@ void Engine::blackRookMoves()
 		}
 		
 		auto rookAttackBits = getBitsPosition(rookAttack);
-		for (auto &i : rookAttackBits) 
-			mPossibleMoves.emplace_back(Move(Piece::ROOK, Player::BLACK, Square(rookBitPos), Square(i)));
+		for (auto &i : rookAttackBits)
+		{
+			auto m = Move(Piece::ROOK, Player::BLACK, Square(rookBitPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}
 	}
 }
 
@@ -857,8 +1041,17 @@ void Engine::whiteBishopMoves()
 		}
 		
 		auto bishopAttackBits = getBitsPosition(bishopAttack);
-		for (auto &i : bishopAttackBits) 
-			mPossibleMoves.emplace_back(Move(Piece::BISHOP, Player::WHITE, Square(bishopBitPos), Square(i)));
+		for (auto &i : bishopAttackBits)
+		{
+			auto m = Move(Piece::BISHOP, Player::WHITE, Square(bishopBitPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}			
 	}
 }
 
@@ -924,8 +1117,17 @@ void Engine::blackBishopMoves()
 		}
 		
 		auto bishopAttackBits = getBitsPosition(bishopAttack);
-		for (auto &i : bishopAttackBits) 
-			mPossibleMoves.emplace_back(Move(Piece::BISHOP, Player::BLACK, Square(bishopBitPos), Square(i)));
+		for (auto &i : bishopAttackBits)
+		{
+			auto m = Move(Piece::BISHOP, Player::BLACK, Square(bishopBitPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}
 	}
 }
 
@@ -1043,8 +1245,17 @@ void Engine::whiteQueenMoves()
 		}
 		
 		auto queenAttacksBits = getBitsPosition(queenAttacks);
-		for (auto &i : queenAttacksBits) 
-			mPossibleMoves.emplace_back(Move(Piece::QUEEN, Player::WHITE, Square(queenBitsPos), Square(i)));
+		for (auto &i : queenAttacksBits)
+		{
+			auto m = Move(Piece::QUEEN, Player::WHITE, Square(queenBitsPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}			
 	}
 }
 
@@ -1162,8 +1373,17 @@ void Engine::blackQueenMoves()
 		}
 		
 		auto queenAttacksBits = getBitsPosition(queenAttacks);
-		for (auto &i : queenAttacksBits) 
-			mPossibleMoves.emplace_back(Move(Piece::QUEEN, Player::BLACK, Square(queenBitsPos), Square(i)));
+		for (auto &i : queenAttacksBits)
+		{
+			auto m = Move(Piece::QUEEN, Player::BLACK, Square(queenBitsPos), Square(i));
+			setMoveCapture(m);
+			chessboard.makeMove(m);
+			if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+			{
+				mPossibleMoves.emplace_back(m);		
+			}
+			chessboard.unmakeMove();
+		}			
 	}
 }
 
@@ -1179,15 +1399,16 @@ void Engine::whiteKingMoves()
 	// kingAttacks = kingAttacks | ((kingBoard & ~AFILE) << 1);
 	// kingAttacks = kingAttacks | ((kingBoard & ~RANK1) << 8);
 	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~HFILE) << 9);
-	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);	
-	kingAttacks = kingAttacks | (kingBoard >> 7);
-	kingAttacks = kingAttacks | (kingBoard >> 8);
-	kingAttacks = kingAttacks | (kingBoard >> 9);
-	kingAttacks = kingAttacks | (kingBoard >> 1);
-	kingAttacks = kingAttacks | (kingBoard << 1);
-	kingAttacks = kingAttacks | (kingBoard << 9);
-	kingAttacks = kingAttacks | (kingBoard << 8);
-	kingAttacks = kingAttacks | (kingBoard << 7);
+	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);
+	
+	kingAttacks |= ((kingBoard >> 7) & ~(RANK1 | AFILE));//north-east
+	kingAttacks |= ((kingBoard >> 8) & ~(RANK1));//north
+	kingAttacks |= ((kingBoard >> 9) & ~(RANK1 | HFILE));//north-west
+	kingAttacks |= ((kingBoard >> 1) & ~(HFILE));//west
+	kingAttacks |= ((kingBoard << 1) & ~(AFILE));//east
+	kingAttacks |= ((kingBoard << 9) & ~(RANK8 | AFILE));//south-east
+	kingAttacks |= ((kingBoard << 8) & ~(RANK8));//south
+	kingAttacks |= ((kingBoard << 7) & ~(RANK8 | HFILE));//south-west
 	//chessboard.printBitboard(kingAttacks);
 
 	//can't capture own pieces
@@ -1197,8 +1418,17 @@ void Engine::whiteKingMoves()
 
 	auto kingAttacksBits = getBitsPosition(kingAttacks);
 	auto kingBitPos = getBitsPosition(kingBoard);
-	for (auto &i : kingAttacksBits) 
-		mPossibleMoves.emplace_back(Move(Piece::KING, Player::WHITE, Square(kingBitPos[0]), Square(i)));
+	for (auto &i : kingAttacksBits)
+	{
+		auto m = Move(Piece::KING, Player::WHITE, Square(kingBitPos[0]), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByBlack(chessboard.mBoard[WHITE_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}		
 }
 
 void Engine::blackKingMoves()
@@ -1213,15 +1443,15 @@ void Engine::blackKingMoves()
 	// kingAttacks = kingAttacks | ((kingBoard & ~AFILE) << 1);
 	// kingAttacks = kingAttacks | ((kingBoard & ~RANK1) << 8);
 	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~HFILE) << 9);
-	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);
-	kingAttacks = kingAttacks | (kingBoard >> 7);
-	kingAttacks = kingAttacks | (kingBoard >> 8);
-	kingAttacks = kingAttacks | (kingBoard >> 9);
-	kingAttacks = kingAttacks | (kingBoard >> 1);
-	kingAttacks = kingAttacks | (kingBoard << 1);
-	kingAttacks = kingAttacks | (kingBoard << 9);
-	kingAttacks = kingAttacks | (kingBoard << 8);
-	kingAttacks = kingAttacks | (kingBoard << 7);
+	// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);	
+	kingAttacks |= ((kingBoard >> 7) & ~(RANK1 | AFILE));//north-east
+	kingAttacks |= ((kingBoard >> 8) & ~(RANK1));//north
+	kingAttacks |= ((kingBoard >> 9) & ~(RANK1 | HFILE));//north-west
+	kingAttacks |= ((kingBoard >> 1) & ~(HFILE));//west
+	kingAttacks |= ((kingBoard << 1) & ~(AFILE));//east
+	kingAttacks |= ((kingBoard << 9) & ~(RANK8 | AFILE));//south-east
+	kingAttacks |= ((kingBoard << 8) & ~(RANK8));//south
+	kingAttacks |= ((kingBoard << 7) & ~(RANK8 | HFILE));//south-west
 	//chessboard.printBitboard(kingAttacks);
 	
 	//can't capture own pieces
@@ -1231,8 +1461,17 @@ void Engine::blackKingMoves()
 
 	auto kingAttacksBits = getBitsPosition(kingAttacks);
 	auto kingBitPos = getBitsPosition(kingBoard);
-	for (auto &i : kingAttacksBits) 
-		mPossibleMoves.emplace_back(Move(Piece::KING, Player::BLACK, Square(kingBitPos[0]), Square(i)));
+	for (auto &i : kingAttacksBits)
+	{
+		auto m = Move(Piece::KING, Player::BLACK, Square(kingBitPos[0]), Square(i));
+		setMoveCapture(m);
+		chessboard.makeMove(m);
+		if(!checkIfSquaresAreAttackedByWhite(chessboard.mBoard[BLACK_KING_BOARD]))
+		{
+			mPossibleMoves.emplace_back(m);		
+		}
+		chessboard.unmakeMove();
+	}		
 }
 
 void Engine::uci()
@@ -1272,9 +1511,9 @@ void Engine::uci()
 			}
 			if (command[0] == "pbb" || command[0] == "printbitboards")
 			{
-				//chessboard.printBitboards();
-				checkIfSquaresAreAttackedByWhite(Bitboard(0));
-				checkIfSquaresAreAttackedByBlack(Bitboard(0));
+				//checkIfSquaresAreAttackedByWhite(Bitboard(0));
+				//checkIfSquaresAreAttackedByBlack(Bitboard(0));
+				chessboard.printBitboards();
 				validcommand = true;
 			}			
 			if (command[0] == "quit")
@@ -1310,7 +1549,9 @@ void Engine::uci()
 
 							auto op = checkIfenPassantPossibleOnNextMove(a,b);
 							auto piece = getPieceFromSquare(a);
-							chessboard.makeMove(Move(piece, chessboard.mPlayerToMove, a, b, promoted, op));
+							auto m = Move(piece, chessboard.mPlayerToMove, a, b, promoted, op);
+							setMoveCapture(m);
+							chessboard.makeMove(m);
 							// chessboard.makeMove(
 							// 	Move(STR_TO_SQUARE[command[i].substr(0, 2)], STR_TO_SQUARE[command[i].substr(2)]));
 						}
@@ -1343,18 +1584,18 @@ void Engine::generateMoves()
 	if(chessboard.mPlayerToMove == Player::WHITE)
 	{
 		whitePawnMoves();
-		// whiteKnightMoves();
-		// whiteRookMoves();
-		// whiteBishopMoves();
-		// whiteQueenMoves();
-		// whiteKingMoves();
+		whiteKnightMoves();
+		whiteRookMoves();
+		whiteBishopMoves();
+		whiteQueenMoves();
+		whiteKingMoves();
 	}else{
 		blackPawnMoves();
-		// blackKnightMoves();
-		// blackRookMoves();
-		// blackBishopMoves();
-		// blackQueenMoves();
-		// blackKingMoves();
+		blackKnightMoves();
+		blackRookMoves();
+		blackBishopMoves();
+		blackQueenMoves();
+		blackKingMoves();
 	}
 	std::cout << "bestmove ";
 	auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
@@ -1370,7 +1611,6 @@ std::vector<uint64_t> Engine::getBitsPosition(Bitboard board)
 	for (n = 0; board != 0; n++, board &= (board - 1))
 	{
 		setBits.push_back(static_cast<uint64_t>(std::log2(board & ~(board - 1))));
-		//std::cout << static_cast<uint64_t>(std::log2(board & ~(board - 1))) << " ";
 	}
 	
 	return setBits;
@@ -1471,26 +1711,28 @@ bool Engine::checkIfSquaresAreAttackedByWhite(const Bitboard squares)
 		Bitboard captureLeft, captureRight;
 		captureRight = chessboard.mBoard[WHITE_PAWNS_BOARD];
 		captureRight = captureRight >> 9;
-		captureRight = captureRight & (~HFILE);
+		captureRight &= ~HFILE;
+		captureRight &= chessboard.mBoard[BLACK_PIECES_BOARD];//can't capture own pieces
 		attackedSquares |= captureRight;
 
 		captureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
 		captureLeft = captureLeft >> 7;
-		captureLeft = captureLeft & (~AFILE);
+		captureLeft &= ~AFILE;
+		captureLeft &= chessboard.mBoard[BLACK_PIECES_BOARD];//can't capture own pieces
 		attackedSquares |= captureLeft;
 
 		//------------ON PASSANT CAPTURE---------------
 		Bitboard opCaptureLeft, opCaptureRight;
 		opCaptureRight = chessboard.mBoard[WHITE_PAWNS_BOARD];
 		opCaptureRight = opCaptureRight >> 9;
-		opCaptureRight = opCaptureRight & (~HFILE);
-		opCaptureRight = opCaptureRight & chessboard.mBoard[ENPASSANT_BOARD];
+		opCaptureRight &= ~HFILE;
+		opCaptureRight &= chessboard.mBoard[ENPASSANT_BOARD];
 		attackedSquares |= opCaptureRight;
 
 		opCaptureLeft = chessboard.mBoard[WHITE_PAWNS_BOARD];
 		opCaptureLeft = opCaptureLeft >> 7;
-		opCaptureLeft = opCaptureLeft & (~AFILE);
-		opCaptureLeft = opCaptureLeft & chessboard.mBoard[ENPASSANT_BOARD];
+		opCaptureLeft &= ~AFILE;
+		opCaptureLeft &= chessboard.mBoard[ENPASSANT_BOARD];
 		attackedSquares |= opCaptureLeft;
 		
 	}
@@ -1508,26 +1750,18 @@ bool Engine::checkIfSquaresAreAttackedByWhite(const Bitboard squares)
 		Bitboard oneOClockAttack = knightsBoard >> 15;
 
 		//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
-		oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));
-		twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
-		fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
-		fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
-		sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
-		eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
-		tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
-		elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
-		
-		// oneOClockAttack = oneOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// twoOClockAttack = twoOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// fourOClockAttack = fourOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// fiveOClockAttack = fiveOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// sevenOClockAttack = sevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// eightOClockAttack = eightOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// tenOClockAttack = tenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-		// elevenOClockAttack = elevenOClockAttack & (~chessboard.mBoard[WHITE_PIECES_BOARD]);
-				
+		oneOClockAttack &= ~(RANK1 | RANK2 | AFILE);
+		twoOClockAttack &= ~(AFILE | RANK1 | BFILE);
+		fourOClockAttack &= ~(AFILE | RANK8 | BFILE);
+		fiveOClockAttack &= ~(AFILE | RANK8 | RANK7);
+		sevenOClockAttack &= ~(HFILE | RANK8 | RANK7);
+		eightOClockAttack &= ~(HFILE | RANK8 | GFILE);
+		tenOClockAttack &= ~(HFILE | RANK1 | GFILE);
+		elevenOClockAttack &= ~(HFILE | RANK1 | RANK2);
+							
 		attackedSquares = attackedSquares | oneOClockAttack | twoOClockAttack | fourOClockAttack |
 			fiveOClockAttack | sevenOClockAttack | eightOClockAttack | tenOClockAttack | elevenOClockAttack;
+		attackedSquares = attackedSquares & ~chessboard.mBoard[WHITE_PIECES_BOARD];
 	}
 
 	//ROOK
@@ -1589,8 +1823,7 @@ bool Engine::checkIfSquaresAreAttackedByWhite(const Bitboard squares)
 				firstBlockerBitboard &= chessboard.mBoard[WHITE_PIECES_BOARD];
 				rookAttack = rookAttack | (temp & ~firstBlockerBitboard);
 				//chessboard.printBitboard(rookAttack);
-			}
-			
+			}			
 			attackedSquares |= rookAttack;
 		}
 	}
@@ -1782,19 +2015,19 @@ bool Engine::checkIfSquaresAreAttackedByWhite(const Bitboard squares)
 		Bitboard kingBoard = chessboard.mBoard[WHITE_KING_BOARD];
 		Bitboard kingAttacks = 0;
 
-		kingAttacks = kingAttacks | (kingBoard >> 7);
-		kingAttacks = kingAttacks | (kingBoard >> 8);
-		kingAttacks = kingAttacks | (kingBoard >> 9);
-		kingAttacks = kingAttacks | (kingBoard >> 1);
-		kingAttacks = kingAttacks | (kingBoard << 1);
-		kingAttacks = kingAttacks | (kingBoard << 9);
-		kingAttacks = kingAttacks | (kingBoard << 8);
-		kingAttacks = kingAttacks | (kingBoard << 7);
+		kingAttacks |= ((kingBoard >> 7) & ~(RANK1 | AFILE));//north-east
+		kingAttacks |= ((kingBoard >> 8) & ~(RANK1));//north
+		kingAttacks |= ((kingBoard >> 9) & ~(RANK1 | HFILE));//north-west
+		kingAttacks |= ((kingBoard >> 1) & ~(HFILE));//west
+		kingAttacks |= ((kingBoard << 1) & ~(AFILE));//east
+		kingAttacks |= ((kingBoard << 9) & ~(RANK8 | AFILE));//south-east
+		kingAttacks |= ((kingBoard << 8) & ~(RANK8));//south
+		kingAttacks |= ((kingBoard << 7) & ~(RANK8 | HFILE));//south-west
 		//chessboard.printBitboard(kingAttacks);
 
 		//can't capture own pieces
 		Bitboard temp = kingAttacks & chessboard.mBoard[WHITE_PIECES_BOARD];
-		kingAttacks = kingAttacks & ~temp;
+		kingAttacks &= ~temp;
 		//chessboard.printBitboard(kingAttacks);
 		
 		attackedSquares |= kingAttacks;
@@ -1815,26 +2048,28 @@ bool Engine::checkIfSquaresAreAttackedByBlack(const Bitboard squares)
 		Bitboard captureLeft, captureRight;
 		captureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
 		captureRight = captureRight << 7;
-		captureRight = captureRight & (~HFILE);
+		captureRight &= ~HFILE;
+		captureRight &= chessboard.mBoard[WHITE_PIECES_BOARD];//can't capture own pieces
 		attackedSquares |= captureRight;
 
 		captureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
 		captureLeft = captureLeft << 9;
-		captureLeft = captureLeft & (~AFILE);
+		captureLeft &= ~AFILE;
+		captureLeft &= chessboard.mBoard[WHITE_PIECES_BOARD];//can't capture own pieces
 		attackedSquares |= captureLeft;
 
 		//------------ON PASSANT CAPTURE---------------
 		Bitboard opCaptureLeft, opCaptureRight;
 		opCaptureRight = chessboard.mBoard[BLACK_PAWNS_BOARD];
 		opCaptureRight = opCaptureRight << 7;
-		opCaptureRight = opCaptureRight & (~HFILE);
-		opCaptureRight = opCaptureRight & chessboard.mBoard[ENPASSANT_BOARD];
+		opCaptureRight &= ~HFILE;
+		opCaptureRight &= chessboard.mBoard[ENPASSANT_BOARD];
 		attackedSquares |= opCaptureRight;
 
 		opCaptureLeft = chessboard.mBoard[BLACK_PAWNS_BOARD];
 		opCaptureLeft = opCaptureLeft << 9;
-		opCaptureLeft = opCaptureLeft & (~AFILE);
-		opCaptureLeft = opCaptureLeft & chessboard.mBoard[ENPASSANT_BOARD];
+		opCaptureLeft &= ~AFILE;
+		opCaptureLeft &= chessboard.mBoard[ENPASSANT_BOARD];
 		attackedSquares |= opCaptureLeft;
 	}
 
@@ -1851,17 +2086,18 @@ bool Engine::checkIfSquaresAreAttackedByBlack(const Bitboard squares)
 		Bitboard oneOClockAttack = knightsBoard >> 15;
 
 		//oneOClockAttack can't land on RANK1 or RANK2 or AFILE
-		oneOClockAttack = oneOClockAttack & (~(RANK1 | RANK2 | AFILE));	
-		twoOClockAttack = twoOClockAttack & (~(AFILE | RANK1 | BFILE));
-		fourOClockAttack = fourOClockAttack & (~(AFILE | RANK8 | BFILE));
-		fiveOClockAttack = fiveOClockAttack & (~(AFILE | RANK8 | RANK7));
-		sevenOClockAttack = sevenOClockAttack & (~(HFILE | RANK8 | RANK7));
-		eightOClockAttack = eightOClockAttack & (~(HFILE | RANK8 | GFILE));
-		tenOClockAttack = tenOClockAttack & (~(HFILE | RANK1 | GFILE));
-		elevenOClockAttack = elevenOClockAttack & (~(HFILE | RANK1 | RANK2));
-
+		oneOClockAttack &= ~(RANK1 | RANK2 | AFILE);
+		twoOClockAttack &= ~(AFILE | RANK1 | BFILE);
+		fourOClockAttack &= ~(AFILE | RANK8 | BFILE);
+		fiveOClockAttack &= ~(AFILE | RANK8 | RANK7);
+		sevenOClockAttack &= ~(HFILE | RANK8 | RANK7);
+		eightOClockAttack &= ~(HFILE | RANK8 | GFILE);
+		tenOClockAttack &= ~(HFILE | RANK1 | GFILE);
+		elevenOClockAttack &= ~(HFILE | RANK1 | RANK2);
+							
 		attackedSquares = attackedSquares | oneOClockAttack | twoOClockAttack | fourOClockAttack |
 			fiveOClockAttack | sevenOClockAttack | eightOClockAttack | tenOClockAttack | elevenOClockAttack;
+		attackedSquares = attackedSquares & ~chessboard.mBoard[BLACK_PIECES_BOARD];
 	}
 
 	//ROOK
@@ -2115,22 +2351,22 @@ bool Engine::checkIfSquaresAreAttackedByBlack(const Bitboard squares)
 		Bitboard kingBoard = chessboard.mBoard[BLACK_KING_BOARD];
 		Bitboard kingAttacks = 0;
 
-		// kingAttacks = kingAttacks | ((kingBoard & ~RANK8) >> 8);
+		kingAttacks |= ((kingBoard >> 7) & ~(RANK1 | AFILE));//north-east
+		kingAttacks |= ((kingBoard >> 8) & ~(RANK1));//north
+		kingAttacks |= ((kingBoard >> 9) & ~(RANK1 | HFILE));//north-west
+		kingAttacks |= ((kingBoard >> 1) & ~(HFILE));//west
+		kingAttacks |= ((kingBoard << 1) & ~(AFILE));//east
+		kingAttacks |= ((kingBoard << 9) & ~(RANK8 | AFILE));//south-east
+		kingAttacks |= ((kingBoard << 8) & ~(RANK8));//south
+		kingAttacks |= ((kingBoard << 7) & ~(RANK8 | HFILE));//south-west
+		// kingAttacks = kingAttacks | ((kingBoard & ~RANK8) >> 8);//north
 		// kingAttacks = kingAttacks | (((kingBoard & ~RANK8) & ~AFILE) >> 7);
 		// kingAttacks = kingAttacks | (((kingBoard & ~RANK8) & ~HFILE) >> 9);
 		// kingAttacks = kingAttacks | ((kingBoard & ~HFILE) >> 1);
 		// kingAttacks = kingAttacks | ((kingBoard & ~AFILE) << 1);
 		// kingAttacks = kingAttacks | ((kingBoard & ~RANK1) << 8);
 		// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~HFILE) << 9);
-		// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);
-		kingAttacks = kingAttacks | (kingBoard >> 7);
-		kingAttacks = kingAttacks | (kingBoard >> 8);
-		kingAttacks = kingAttacks | (kingBoard >> 9);
-		kingAttacks = kingAttacks | (kingBoard >> 1);
-		kingAttacks = kingAttacks | (kingBoard << 1);
-		kingAttacks = kingAttacks | (kingBoard << 9);
-		kingAttacks = kingAttacks | (kingBoard << 8);
-		kingAttacks = kingAttacks | (kingBoard << 7);
+		// kingAttacks = kingAttacks | (((kingBoard & ~RANK1) & ~AFILE) << 7);		
 		//chessboard.printBitboard(kingAttacks);
 		
 		//can't capture own pieces

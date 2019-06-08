@@ -12,20 +12,20 @@ struct Move
 	const enum Square moveFrom, const enum Square moveTo,
 	const enum Piece piecePromotion = Piece::NO_PIECE,
 	const Bitboard enPassant = 0x0 )
-	: mMoveFrom(moveFrom), mMoveTo(moveTo), mPromoteTo(piecePromotion),
-	menPassantBoard(enPassant) {
-		//SQUARE_TO_STR.emplace(std::pair<Square, std::string>{ A1,"a1" });
-	}
+	: mPiece(piece), mSide(side),
+	mMoveFrom(moveFrom), mMoveTo(moveTo), mPromoteTo(piecePromotion),
+	mEnPassantBoard(enPassant) {}
 	~Move() = default;
 	void printMove();
 
 	Piece mPiece;
-	Player mSideToMove;
+	Player mSide;
 	Square mMoveFrom;
 	Square mMoveTo;
 	Piece mPromoteTo;
 	double mScore = 0;
-	Bitboard menPassantBoard = 0;
-	Piece mCaptured;
+	Bitboard mEnPassantBoard = 0; //sinals en passant possible on next move
+	bool enPassantCapture = false; //is this move an en passant capture?
+	Piece mCaptured = Piece::NO_PIECE;
 };
 

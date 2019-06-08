@@ -6,14 +6,12 @@
 #include <cctype>
 #include <unordered_map>
 
-#define LOG_ERROR(msg) std::cout << msg;
-//#include "Move.h"
-//#include "BoardState.h"
+#define LOG_ERROR(msg) std::cout << "ERROR:" << msg;
 
 typedef uint64_t Bitboard;
 
-enum Player {WHITE = 0, BLACK = 6};
-enum Piece {PAWN = 0, KNIGHT = 2, BISHOP = 3, ROOK = 1, QUEEN = 5, KING = 4, NO_PIECE = 64};
+enum Player {WHITE = 0, BLACK = 1};
+enum Piece {NO_PIECE = 0, PAWN = 2, KNIGHT = 4, BISHOP = 6, ROOK = 8, QUEEN = 10, KING = 12};
 
 static Bitboard AFILE = 0x0101010101010101;
 static Bitboard BFILE = AFILE << 1;
@@ -39,26 +37,28 @@ static double BISHOP_VALUE = 3.5;
 static double ROOK_VALUE = 5.0;
 static double QUEEN_VALUE = 9.0;
 
-static const std::string NAME = "Chess Engine ver 0.1 Alpha";
+static const std::string NAME = "Talos 0.1 pre-Alpha";
 static const std::string AUTHOR = "David A. Kennedy";
 static const std::string START_POS_FEN_STRING = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-static int WHITE_PAWNS_BOARD = 0;
-static int WHITE_ROOKS_BOARD = 1;
-static int WHITE_KNIGHTS_BOARD = 2;
-static int WHITE_BISHOPS_BOARD = 3;
-static int WHITE_KING_BOARD = 4;
-static int WHITE_QUEEN_BOARD = 5;
-static int WHITE_PIECES_BOARD = 6;
-static int BLACK_PAWNS_BOARD = 7;
-static int BLACK_ROOKS_BOARD = 8;
-static int BLACK_KNIGHTS_BOARD = 9;
-static int BLACK_BISHOPS_BOARD = 10;
-static int BLACK_KING_BOARD = 11;
-static int BLACK_QUEEN_BOARD = 12;
-static int BLACK_PIECES_BOARD = 13;
-static int ALL_PIECES_BOARD = 14;
-static int ENPASSANT_BOARD = 15;
+static int NO_BOARD = 0;
+static int NO_BOARD2 = 1;
+static int WHITE_PAWNS_BOARD = 2;
+static int BLACK_PAWNS_BOARD = 3;
+static int WHITE_KNIGHTS_BOARD = 4;
+static int BLACK_KNIGHTS_BOARD = 5;
+static int WHITE_BISHOPS_BOARD = 6;
+static int BLACK_BISHOPS_BOARD = 7;
+static int WHITE_ROOKS_BOARD = 8;
+static int BLACK_ROOKS_BOARD = 9;
+static int WHITE_QUEEN_BOARD = 10;
+static int BLACK_QUEEN_BOARD = 11;
+static int WHITE_KING_BOARD = 12;
+static int BLACK_KING_BOARD = 13;
+static int WHITE_PIECES_BOARD = 14;
+static int BLACK_PIECES_BOARD = 15;
+static int ALL_PIECES_BOARD = 16;
+static int ENPASSANT_BOARD = 17;
 
 enum Square {
 	A8, B8, C8, D8, E8, F8, G8, H8,
@@ -150,29 +150,39 @@ static std::vector<std::string> split(const std::string & str, const std::string
 //https://stackoverflow.com/questions/671815/what-is-the-fastest
 //-most-efficient-way-to-find-the-highest-set-bit-msb-in-an-i
 #if defined(__GNUC__)
-static Square getLowestSetBit(Bitboard n)
+static inline Square getLowestSetBit(uint64_t n)
 {
   return Square(__builtin_ctzll(n));
 }
 
-static Square getHighestSetBit(Bitboard n)
+static inline Square getHighestSetBit(uint64_t n)
 {
   return Square(63 ^ __builtin_clzll(n));
 }
 
+static inline uint64_t popCount(uint64_t n)
+{
+	return __builtin_popcountll (n);
+}
+
 #elif defined(_MSC_VER)
 
-static Square getLowestSetBit(Bitboard n)
+static inline Square getLowestSetBit(uint64_t n)
 {
   unsigned long index;
   _BitScanForward64(&index, n);
   return static_cast<Square>(index);
 }
 
-static Square getHighestSetBit(Bitboard n)
+static inline Square getHighestSetBit(uint64_t n)
 {
   unsigned long index;
   _BitScanReverse64(&index, n);
   return static_cast<Square>(index);
+}
+
+static inline uint64_t popCount(uint64_t n)
+{
+	return __popcnt64(n);
 }
 #endif

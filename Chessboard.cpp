@@ -11,8 +11,8 @@ inline void setPieceInBoard(uint64_t &piecePosition, Bitboard &board)
 
 Chessboard::Chessboard()
 {
-	mBoard.reserve(16);
-	for (int i = 0; i < 16; i++) { mBoard.push_back(0); }
+	mBoard.reserve(18);
+	for (int i = 0; i < 18; i++) { mBoard.push_back(0); }
 }
 
 void Chessboard::setState(const std::string & FENstring)
@@ -106,27 +106,27 @@ void Chessboard::printBitboards()
 {
 	std::vector<std::string> names = {
 		"WHITE_PAWNS_BOARD",
-		"WHITE_ROOKS_BOARD",
-		"WHITE_KNIGHTS_BOARD",
-		"WHITE_BISHOPS_BOARD",
-		"WHITE_KING_BOARD",
-		"WHITE_QUEEN_BOARD", 
-		"WHITE_PIECES_BOARD",
 		"BLACK_PAWNS_BOARD",
-		"BLACK_ROOKS_BOARD",
+		"WHITE_KNIGHTS_BOARD",
 		"BLACK_KNIGHTS_BOARD",
+		"WHITE_BISHOPS_BOARD",
 		"BLACK_BISHOPS_BOARD",
-		"BLACK_KING_BOARD",
+		"WHITE_ROOKS_BOARD",
+		"BLACK_ROOKS_BOARD",
+		"WHITE_QUEEN_BOARD", 
 		"BLACK_QUEEN_BOARD", 
+		"WHITE_KING_BOARD",
+		"BLACK_KING_BOARD",
+		"WHITE_PIECES_BOARD",
 		"BLACK_PIECES_BOARD",
 		"ALL_PIECES_BOARD",
 		"ENPASSANT_BOARD"
 	};
-	for(int n = 0; n< mBoard.size();n++)
+	for(int n = 2; n< mBoard.size();n++)
 	{
 		int count = 0;
 		Bitboard b;
-		std::cout << names[n] << "\n";
+		std::cout << names[n-2] << "\n";
 		for (uint64_t i = 0; i < 8; i++)
 		{
 			std::cout << 8-i << "|";
@@ -146,174 +146,87 @@ void Chessboard::reset()
 	mPlayerToMove = WHITE;
 	std::fill(mBoard.begin(), mBoard.end(), 0); //reset board
 
-	std::queue<Move> empty;
-	std::swap(mHistory, empty);	
+	//std::queue<Move> empty;
+	//std::swap(mHistory, empty);	
+	mHistory.clear();
 }
 
-void Chessboard::makeMove(Move move)
+void Chessboard::makeMove(const Move &move)
 {
-	mLastPromotedPiece = Piece::NO_PIECE;
-	mLastCapturedPiece = Piece::NO_PIECE;
-
 	Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
+	auto otherSide = (move.mSide + 1) % 2;
 
-	//if move is a capture then remove opponent's piece from color bitboard
-	if (mPlayerToMove == Player::WHITE)
+	if(move.mPromoteTo == Piece::NO_PIECE) //if move is not a promotion
 	{
-		mBoard[BLACK_PIECES_BOARD] = (~moveToSquare) & mBoard[BLACK_PIECES_BOARD];		
-		
-		//if move is enPassant capture
-		if( (moveFromSquare & mBoard[WHITE_PAWNS_BOARD]) && (moveToSquare & mBoard[ENPASSANT_BOARD]) )
-		{
-			mBoard[BLACK_PIECES_BOARD] = mBoard[BLACK_PIECES_BOARD] & (~(moveToSquare << 8));
-			mBoard[BLACK_PAWNS_BOARD] = mBoard[BLACK_PAWNS_BOARD] & (~(moveToSquare << 8));
-			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~(moveToSquare << 8));
-			mLastCapturedPiece = Piece::PAWN;
-		}
-	}
-	else
+		//add the piece to dest square
+		mBoard[move.mPiece + move.mSide] |= moveToSquare;
+	}else
 	{
-		mBoard[WHITE_PIECES_BOARD] = (~moveToSquare) & mBoard[WHITE_PIECES_BOARD];		
-
-		//if move is enPassant capture
-		//auto x = moveFromSquare & mBoard[BLACK_PAWNS_BOARD];
-		//auto y = moveToSquare & mBoard[ENPASSANT_BOARD];
-		if( (moveFromSquare & mBoard[BLACK_PAWNS_BOARD]) && (moveToSquare & mBoard[ENPASSANT_BOARD] ) )
-		{
-			mBoard[WHITE_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] & (~(moveToSquare >> 8));
-			mBoard[WHITE_PAWNS_BOARD] = mBoard[WHITE_PAWNS_BOARD] & (~(moveToSquare >> 8));
-			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~(moveToSquare >> 8));
-			mLastCapturedPiece = Piece::PAWN;
-		}
+		//add the promoted piece to dest square
+		mBoard[move.mPromoteTo + move.mSide] |= moveToSquare;
 	}
-	for (int i = 0; i <= 12; i++)
-	{
-		if(i==6) continue;
-		if ((mBoard[i] & moveFromSquare) != 0)//only modify the correct bitboard
-		{
-			//place piece in target square(in selected bitboard)
-			if(move.mPromoteTo == Piece::NO_PIECE) mBoard[i] = mBoard[i] | moveToSquare;
-			mBoard[i] = mBoard[i] & (~moveFromSquare); //remove piece from starting square(in selected bitboard)
+	//remove piece from starting square(from piece's bitboard)
+	mBoard[move.mPiece + move.mSide] &= ~moveFromSquare;
+	
+	mBoard[ALL_PIECES_BOARD] |= moveToSquare; //add piece to ALL_PIECES_BOARD
+	mBoard[ALL_PIECES_BOARD] &= ~moveFromSquare; //remove piece from ALL_PIECES_BOARD
+	mBoard[WHITE_PIECES_BOARD + move.mSide] |= moveToSquare; //add piece to color bitboard
+	mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~moveFromSquare; //remove piece from color bitboard
 
-			//place piece in target square in ALL_PIECES_BOARD
-			mBoard[ALL_PIECES_BOARD] |= moveToSquare;
-			//remove piece from starting square in ALL_PIECES_BOARD
-			mBoard[ALL_PIECES_BOARD] = mBoard[ALL_PIECES_BOARD] & (~moveFromSquare);
-
-			//move piece in selected color bitboard
-			if (mPlayerToMove == Player::WHITE)
-			{
-				mBoard[WHITE_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] | moveToSquare;
-				mBoard[WHITE_PIECES_BOARD] = mBoard[WHITE_PIECES_BOARD] & (~moveFromSquare);
-			}
-			else
-			{
-				mBoard[BLACK_PIECES_BOARD] = mBoard[BLACK_PIECES_BOARD] | moveToSquare;
-				mBoard[BLACK_PIECES_BOARD] = mBoard[BLACK_PIECES_BOARD] & (~moveFromSquare);
-			}
-			
-			//if move is a capture remove opponet's piece from its bitboard
-			if (mPlayerToMove == Player::WHITE)
-			{
-				for (int j = 7; j <= 12; j++)
-				{
-					//if(i == j) continue;
-					mBoard[j] = (~moveToSquare) & mBoard[j];
-					mLastCapturedPiece = Piece(j);
-					move.mCaptured = mLastCapturedPiece;
-				}
-			}
-			else
-			{
-				for (int j = 0; j <= 5; j++)
-				{
-					//if(i == j) continue;
-					mBoard[j] = (~moveToSquare) & mBoard[j];
-					mLastCapturedPiece = Piece(j);
-					move.mCaptured = mLastCapturedPiece;
-				}
-			}
-		}
-
-
-	}
-	//if move is a promotion place the new piece on the board
-	if (mPlayerToMove == Player::WHITE)
-	{
-		if(move.mPromoteTo == Piece::QUEEN)
-		{
-			mBoard[WHITE_QUEEN_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::QUEEN;
-		}
-		if(move.mPromoteTo == Piece::ROOK) 
-		{
-			mBoard[WHITE_ROOKS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::ROOK;
-		}
-		if(move.mPromoteTo == Piece::BISHOP) 
-		{
-			mBoard[WHITE_BISHOPS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::BISHOP;
-		}
-		if(move.mPromoteTo == Piece::KNIGHT)
-		{
-			mBoard[WHITE_KNIGHTS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::KNIGHT;
-		}
-	}else{
-		if(move.mPromoteTo == Piece::QUEEN) 
-		{
-			mBoard[BLACK_QUEEN_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::QUEEN;
-		}
-		if(move.mPromoteTo == Piece::ROOK) 
-		{
-			mBoard[BLACK_ROOKS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::ROOK;
-		}
-		if(move.mPromoteTo == Piece::BISHOP) 
-		{
-			mBoard[BLACK_BISHOPS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::BISHOP;
-		}
-		if(move.mPromoteTo == Piece::KNIGHT) 
-		{
-			mBoard[BLACK_KNIGHTS_BOARD] |= moveToSquare;
-			mLastPromotedPiece = Piece::KNIGHT;
-		}
-	}
-
-	//todo: calc move score
-	mHistory.push(move);	
-	//mPlayerToMove = !mPlayerToMove;
-	if(mPlayerToMove == Player::WHITE) mPlayerToMove = Player::BLACK;
-	else mPlayerToMove = Player::WHITE;
-	mBoard[ENPASSANT_BOARD] = move.menPassantBoard;
-
+	//remove captured piece from the board
+	//only meaningful is move is a capture
+	mBoard[move.mCaptured + otherSide] &= ~mBoard[ENPASSANT_BOARD];	
+	mBoard[move.mCaptured + otherSide] &= ~moveToSquare;
+	mBoard[WHITE_PIECES_BOARD + otherSide] &= ~moveToSquare;
+	
+	mHistory.push_back(move);
+	mPlayerToMove = Player(otherSide);
+	mBoard[ENPASSANT_BOARD] = move.mEnPassantBoard;
 }
 
 void Chessboard::unmakeMove()
 {
-	auto move = mHistory.front();
-	mHistory.pop();
+	auto move = mHistory.back();
+	mHistory.pop_back();
 	
-	Bitboard moveToBoard = uint64_t(1) << move.mMoveTo;
-	Bitboard moveFromBoard = uint64_t(1) << move.mMoveFrom;
+	Bitboard moveToSquare = uint64_t(1) << move.mMoveTo;
+	Bitboard moveFromSquare = uint64_t(1) << move.mMoveFrom;
+	auto otherSide = (move.mSide + 1) % 2;
 	
-	mBoard[move.mPiece] |= moveFromBoard; //add the piece where it came from
-	mBoard[move.mPiece] &= ~moveToBoard; //remove the piece where it move to
-	if(move.mCaptured != Piece::NO_PIECE)
+	mBoard[move.mPiece + move.mSide] |= moveFromSquare; //add the piece where it came from
+	mBoard[move.mPiece + move.mSide] &= ~moveToSquare; //remove the piece where it moved to
+
+	mBoard[ALL_PIECES_BOARD] |= moveFromSquare; //add piece to ALL_PIECES_BOARD
+
+	if(move.mCaptured == Piece::NO_PIECE) //if move is not a capture
 	{
-		if(/*(move.mPiece == Piece::PAWN) &&*/ move.menPassantBoard)//if last move was a on passant capture		
-		mBoard[move.mCaptured] |= move.menPassantBoard;//if last move was a on passant capture
-		
-		else mBoard[move.mCaptured] |= moveToBoard;//add the captured piece back to the board
+		mBoard[ALL_PIECES_BOARD] &= ~moveToSquare; //remove piece from ALL_PIECES_BOARD
+	}else
+	{
+		//if move is capture restore other side pieces to color bitboard
+		mBoard[WHITE_PIECES_BOARD + otherSide] |= moveToSquare;
 	}
 
-	if(move.mPromoteTo != Piece::NO_PIECE)//if last move was a promotion
+	mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~moveToSquare; //remove piece from color bitboard	
+	mBoard[WHITE_PIECES_BOARD + move.mSide] |= moveFromSquare; //add piece to color bitboard
+	
+	//only meaningful if move was a capture
+	if(move.enPassantCapture)
 	{
-		//remove the promoted piece from its board
-		mBoard[move.mPromoteTo] = mBoard[move.mPromoteTo] & ~moveToBoard;
+		Bitboard CapturedPawnPosition[2] = {moveToSquare << 8, 
+											moveToSquare >> 8};
+		mBoard[WHITE_PAWNS_BOARD + otherSide] |= CapturedPawnPosition[otherSide];
+		mBoard[ENPASSANT_BOARD] = CapturedPawnPosition[otherSide];
+	}else
+	{
+		//restore captured piece to the board
+		mBoard[move.mCaptured + otherSide] |= moveToSquare;
 	}
+	
+	//remove the promoted piece from its board
+	//only meaningful if last move was a promotion
+	mBoard[move.mPromoteTo + move.mSide] &= ~moveToSquare;
+
+	mPlayerToMove = Player(otherSide);
 }
