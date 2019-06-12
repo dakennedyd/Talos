@@ -26,6 +26,9 @@ public:
 	//unsigned int mPlayerToMove = Player::WHITE;
 
 	std::vector<Bitboard> mBoard;	
-	std::vector<Move> mHistory;
+	std::vector<Move> mHistory;	
+	int mCastlingAvailable[5] = {0,1,1,1,1};//garbage kingSideW kingSideB QueenSideW QueenSideB
+	int mKingNotMoved[3] = {0,1,1};//garbage, wking, bking - 0 means it moved
+	bool mCanCastle = true;
 };
 

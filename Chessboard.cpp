@@ -100,6 +100,9 @@ void Chessboard::printBoard()
 	}
 	std::cout << "  ------------------------\n   a  b  c  d  e  f  g  h\n";
 	//printBitboads();
+	std::cout << "\ncastling available K:" << mCastlingAvailable[1] << 
+		"  Q:" << mCastlingAvailable[3] << "  k:" << mCastlingAvailable[2] <<
+		"  q:" << mCastlingAvailable[4] << "\n";
 }
 
 void Chessboard::printBitboards()
@@ -145,7 +148,12 @@ void Chessboard::reset()
 {
 	mPlayerToMove = WHITE;
 	std::fill(mBoard.begin(), mBoard.end(), 0); //reset board
-
+	mCastlingAvailable[1] = 1;
+	mCastlingAvailable[2] = 1;
+	mCastlingAvailable[3] = 1;
+	mCastlingAvailable[4] = 1;
+	mKingNotMoved[1] = 1;
+	mKingNotMoved[2] = 1;
 	//std::queue<Move> empty;
 	//std::swap(mHistory, empty);	
 	mHistory.clear();
@@ -156,6 +164,39 @@ void Chessboard::makeMove(const Move &move)
 	Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
 	auto otherSide = (move.mSide + 1) % 2;
+
+	//determines which type of castling is available
+	// auto rook = mBoard[WHITE_ROOKS_BOARD + move.mSide] & moveFromSquare;
+	// auto king = mBoard[WHITE_KING_BOARD + move.mSide] & moveFromSquare;
+	// mKingNotMoved[KING_CASTLE[king & EFILE & RANK1]] = 0;
+	// mKingNotMoved[KING_CASTLE[king & EFILE & RANK8]] = 0;
+	
+	//determines if and which rook moved for the first time
+	// mCastlingAvailable[ROOK_CASTLE[rook & RANK1 & AFILE]] = 0;
+	// mCastlingAvailable[ROOK_CASTLE[rook & RANK1 & HFILE]] = 0;
+	// mCastlingAvailable[ROOK_CASTLE[rook & RANK8 & HFILE]] = 0;
+	// mCastlingAvailable[ROOK_CASTLE[rook & RANK8 & AFILE]] = 0;
+
+	// mCastlingAvailable[1] &= mKingNotMoved[1];
+	// mCastlingAvailable[2] &= mKingNotMoved[2];
+	// mCastlingAvailable[3] &= mKingNotMoved[1];
+	// mCastlingAvailable[4] &= mKingNotMoved[2];
+	
+	if(move.mPiece == Piece::ROOK && move.mMoveFrom == Square::H1) mCastlingAvailable[1] = 0;
+	if(move.mPiece == Piece::ROOK && move.mMoveFrom == Square::A1) mCastlingAvailable[3] = 0;
+	if(move.mPiece == Piece::ROOK && move.mMoveFrom == Square::H8) mCastlingAvailable[2] = 0;
+	if(move.mPiece == Piece::ROOK && move.mMoveFrom == Square::A8) mCastlingAvailable[4] = 0;
+
+	if(move.mPiece == Piece::KING && move.mSide == Player::WHITE && move.mMoveFrom == Square::E1)
+	{
+		mCastlingAvailable[1] = 0;
+		mCastlingAvailable[3] = 0;
+	}
+	if(move.mPiece == Piece::KING && move.mSide == Player::BLACK && move.mMoveFrom == Square::E8)
+	{
+		mCastlingAvailable[2] = 0;
+		mCastlingAvailable[4] = 0;
+	}		
 
 	if(move.mPromoteTo == Piece::NO_PIECE) //if move is not a promotion
 	{
@@ -179,6 +220,39 @@ void Chessboard::makeMove(const Move &move)
 	mBoard[move.mCaptured + otherSide] &= ~mBoard[ENPASSANT_BOARD];	
 	mBoard[move.mCaptured + otherSide] &= ~moveToSquare;
 	mBoard[WHITE_PIECES_BOARD + otherSide] &= ~moveToSquare;
+
+	if(move.mCastle == Castling::KINGSIDE)
+	{
+		Bitboard rookColor[2] = {RANK1, RANK8};
+		Bitboard rook = mBoard[Piece::ROOK + move.mSide] & HFILE;
+		rook &= rookColor[move.mSide];
+		mBoard[Piece::ROOK + move.mSide] |= (rook >> 2);
+		mBoard[Piece::ROOK + move.mSide] &= ~rook;
+		mBoard[ALL_PIECES_BOARD] |= (rook >> 2);
+		mBoard[ALL_PIECES_BOARD] &= ~rook;
+		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook >> 2);
+		mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
+		mCastlingAvailable[1] = 0;
+		mCastlingAvailable[2] = 0;
+		mCastlingAvailable[3] = 0;
+		mCastlingAvailable[4] = 0;
+	}
+	if(move.mCastle == Castling::QUEENSIDE)
+	{
+		Bitboard rookColor[2] = {RANK1, RANK8};
+		Bitboard rook = mBoard[Piece::ROOK + move.mSide] & AFILE;
+		rook &= rookColor[move.mSide];
+		mBoard[Piece::ROOK + move.mSide] |= (rook << 3);
+		mBoard[Piece::ROOK + move.mSide] &= ~rook;
+		mBoard[ALL_PIECES_BOARD] |= (rook << 3);
+		mBoard[ALL_PIECES_BOARD] &= ~rook;
+		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook << 3);
+		mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
+		mCastlingAvailable[1] = 0;
+		mCastlingAvailable[2] = 0;
+		mCastlingAvailable[3] = 0;
+		mCastlingAvailable[4] = 0;
+	}
 	
 	mHistory.push_back(move);
 	mPlayerToMove = Player(otherSide);
@@ -223,10 +297,35 @@ void Chessboard::unmakeMove()
 		//restore captured piece to the board
 		mBoard[move.mCaptured + otherSide] |= moveToSquare;
 	}
-	
+		
 	//remove the promoted piece from its board
 	//only meaningful if last move was a promotion
 	mBoard[move.mPromoteTo + move.mSide] &= ~moveToSquare;
 
+	// if(move.mCastle == Castling::KINGSIDE)
+	// {
+	// 	Bitboard rookColor[2] = {RANK1, RANK8};
+	// 	Bitboard rook = mBoard[Piece::ROOK + move.mSide] & FFILE;
+	// 	rook &= rookColor[move.mSide];
+	// 	mBoard[Piece::ROOK + move.mSide] |= (rook << 2);
+	// 	mBoard[Piece::ROOK + move.mSide] &= ~rook;
+	// 	mBoard[ALL_PIECES_BOARD] |= (rook << 2);
+	// 	mBoard[ALL_PIECES_BOARD] &= ~rook;
+	// 	mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook << 2);
+	// 	mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
+	// }
+	// if(move.mCastle == Castling::QUEENSIDE)
+	// {
+	// 	Bitboard rookColor[2] = {RANK1, RANK8};
+	// 	Bitboard rook = mBoard[Piece::ROOK + move.mSide] & DFILE;
+	// 	rook &= rookColor[move.mSide];
+	// 	mBoard[Piece::ROOK + move.mSide] |= (rook >> 3);
+	// 	mBoard[Piece::ROOK + move.mSide] &= ~rook;
+	// 	mBoard[ALL_PIECES_BOARD] |= (rook >> 3);
+	// 	mBoard[ALL_PIECES_BOARD] &= ~rook;
+	// 	mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook >> 3);
+	// 	mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
+	// }
+	
 	mPlayerToMove = Player(otherSide);
 }

@@ -56,7 +56,7 @@ private:
 
 	/**
 	 * @brief checks if any of the squares in the squares bitboard
-	 * is under attack by player if it is it returns true else false
+	 * are under attack by player if it is it returns true else false
 	 */
 	bool checkIfSquaresAreAttackedByWhite(const Bitboard squares);
 	bool checkIfSquaresAreAttackedByBlack(const Bitboard squares);
@@ -70,6 +70,7 @@ private:
 	Piece getPieceFromSquare(const Square square);
 	//checks if move is a capture and set mCaptured to the captured piece
 	void setMoveCapture(Move &move);
+	void setIfEnPassantCapture(Move &move);
 	Chessboard chessboard;
 	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };

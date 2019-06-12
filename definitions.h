@@ -12,6 +12,7 @@ typedef uint64_t Bitboard;
 
 enum Player {WHITE = 0, BLACK = 1};
 enum Piece {NO_PIECE = 0, PAWN = 2, KNIGHT = 4, BISHOP = 6, ROOK = 8, QUEEN = 10, KING = 12};
+enum Castling {NONE = 0, KINGSIDE = 1, QUEENSIDE = 2};
 
 static Bitboard AFILE = 0x0101010101010101;
 static Bitboard BFILE = AFILE << 1;
@@ -69,6 +70,19 @@ enum Square {
 	A3, B3, C3, D3, E3, F3, G3, H3,
 	A2, B2, C2, D2, E2, F2, G2, H2,
 	A1, B1, C1, D1, E1, F1, G1, H1
+};
+
+//used to determine if the rook moved for castling
+//availability
+static std::unordered_map<Bitboard, int> ROOK_CASTLE = 
+{
+	{0,0},{uint64_t(1) << 63,1},{uint64_t(1) << 56,3},
+	{uint64_t(1) << 7,2},{uint64_t(1) << 0,4}
+};
+
+static std::unordered_map<Bitboard, int> KING_CASTLE = 
+{
+	{0,0},{uint64_t(1) << 60,1},{uint64_t(1) << 4,2}
 };
 
 //fix to be able to work with libc++ on ubuntu 16.04

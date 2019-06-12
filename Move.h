@@ -27,5 +27,6 @@ struct Move
 	Bitboard mEnPassantBoard = 0; //sinals en passant possible on next move
 	bool enPassantCapture = false; //is this move an en passant capture?
 	Piece mCaptured = Piece::NO_PIECE;
+	Castling mCastle = Castling::NONE;
 };
 
