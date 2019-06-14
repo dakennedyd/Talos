@@ -79,6 +79,7 @@ void Engine::setMoveCapture(Move &move)
 			//auto x = getBitsPosition(n);
 			//move.mCaptured = Piece(x[0]);
 			move.mCaptured = Piece(i);
+			move.mScore = PIECES_VALUES[i];
 			return;
 		}
 

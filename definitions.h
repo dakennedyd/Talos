@@ -37,6 +37,7 @@ static double KNIGHT_VALUE = 3.0;
 static double BISHOP_VALUE = 3.5;
 static double ROOK_VALUE = 5.0;
 static double QUEEN_VALUE = 9.0;
+static std::vector<int> PIECES_VALUES = {0,0,100,0,300,0,350,0,500,0,900};
 
 static const std::string NAME = "Talos 0.1 pre-Alpha";
 static const std::string AUTHOR = "David A. Kennedy";
