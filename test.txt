@@ -1,0 +1,1 @@
+position startpos moves c2c3 b8c6 f2f4 d7d5 e2e3 e7e5 g2g3 g7g6 h2h3 d5d4 e1f2 a7a5 g3g4 h7h6 f2g2 b7b6 h3h4 d4e3 a2a4 e5f4 g4g5 c6b4 b2b3 f7f5 g2f3 b4c2 f3g2 c2d4 b3b4 b6b5 b4a5 d4b3 d2d3 e3e2 g1h3 g8e7 h3f2 e2f1b
