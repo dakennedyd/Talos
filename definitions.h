@@ -42,7 +42,7 @@ static double ROOK_VALUE = 5.0;
 static double QUEEN_VALUE = 9.0;
 static std::vector<int> PIECES_VALUES = {0,0,100,0,300,0,350,0,500,0,900};
 
-static const std::string NAME = "Talos 0.1 pre-Alpha";
+static const std::string NAME = "Talos 0.2 pre-Alpha";
 static const std::string AUTHOR = "David A. Kennedy";
 static const std::string START_POS_FEN_STRING = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

@@ -778,6 +778,7 @@ Chessboard::Chessboard()
 {
 	mBoard.reserve(18);
 	for (int i = 0; i < 18; i++) { mBoard.push_back(0); }
+	mPossibleMoves.reserve(100);
 }
 
 void Chessboard::setState(const std::string & FENstring)
@@ -922,6 +923,7 @@ void Chessboard::reset()
 	//std::queue<Move> empty;
 	//std::swap(mHistory, empty);	
 	mHistory.clear();
+	mPossibleMoves.clear();
 }
 
 void Chessboard::makeMove(const Move &move)

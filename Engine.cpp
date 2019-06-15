@@ -3,8 +3,7 @@
 #include "Move.h"
 
 Engine::Engine()
-{	
-	chessboard.mPossibleMoves.reserve(100);
+{		
 	printInfo();
 }
 
