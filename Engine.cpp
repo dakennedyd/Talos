@@ -2476,4 +2476,3 @@ bool Engine::checkIfSquaresAreAttackedByBlack(const Bitboard squares)
 	if(attackedSquares & squares) return true;
 	else return false;
 }
-

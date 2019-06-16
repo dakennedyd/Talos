@@ -20,6 +20,7 @@ public:
 	void unmakeMove();
 
 //private:	
+	int64_t getPositionValue();
 	void printBitboard(const Bitboard bitboard);
 	void printBitboards();
 	enum Player mPlayerToMove = Player::WHITE;

@@ -329,3 +329,22 @@ void Chessboard::unmakeMove()
 	
 	mPlayerToMove = Player(otherSide);
 }
+
+int64_t Chessboard::getPositionValue()
+{
+	auto whitePawns = popCount(mBoard[WHITE_PAWNS_BOARD]) * PIECES_VALUES[Piece::PAWN];
+	auto whiteKnights = popCount(mBoard[WHITE_KNIGHTS_BOARD]) * PIECES_VALUES[Piece::KNIGHT];
+	auto whiteBishops = popCount(mBoard[WHITE_BISHOPS_BOARD]) * PIECES_VALUES[Piece::BISHOP];
+	auto whiteRooks = popCount(mBoard[WHITE_ROOKS_BOARD]) * PIECES_VALUES[Piece::ROOK];
+	auto whiteQueens = popCount(mBoard[WHITE_QUEEN_BOARD]) * PIECES_VALUES[Piece::QUEEN];
+	auto black = whitePawns + whiteKnights + whiteBishops + whiteRooks + whiteQueens;
+
+	auto blackPawns = popCount(mBoard[BLACK_PAWNS_BOARD]) * PIECES_VALUES[Piece::PAWN];
+	auto blackKnights = popCount(mBoard[BLACK_KNIGHTS_BOARD]) * PIECES_VALUES[Piece::KNIGHT];
+	auto blackBishops = popCount(mBoard[BLACK_BISHOPS_BOARD]) * PIECES_VALUES[Piece::BISHOP];
+	auto blackRooks = popCount(mBoard[BLACK_ROOKS_BOARD]) * PIECES_VALUES[Piece::ROOK];
+	auto blackQueens = popCount(mBoard[BLACK_QUEEN_BOARD]) * PIECES_VALUES[Piece::QUEEN];
+	auto white = blackPawns + blackKnights + blackBishops + blackRooks + blackQueens;
+	
+	return white - black;
+}
