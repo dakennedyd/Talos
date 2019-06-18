@@ -14,5 +14,5 @@ void Move::printMove()
 	if(mPromoteTo == Piece::KNIGHT) p = "n";
 	if(mPromoteTo == Piece::BISHOP) p = "b";
 		
-	std::cout << SQUARE_TO_STR[mMoveFrom] << SQUARE_TO_STR[mMoveTo] << p <<"\n";	
+	std::cout << SQUARE_TO_STR[mMoveFrom] << SQUARE_TO_STR[mMoveTo] << p;	
 }

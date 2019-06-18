@@ -8,8 +8,12 @@
 #include <ctime>
 #include <random>
 #include <chrono>
+#include <limits>
 
 #define LOG_ERROR(msg) std::cout << "ERROR:" << msg;
+
+static int INT_MAX_VALUE = std::numeric_limits<int>::min();
+static int INT_MIN_VALUE = std::numeric_limits<int>::max();
 
 typedef uint64_t Bitboard;
 
@@ -147,8 +151,6 @@ static int SOUTH_WEST = 5;
 static int WEST = 		6;
 static int NORTH_WEST = 7;
 
-static Bitboard attackRays[64][8];//precalculated rays first dim is square pos second dim is direction
-
 /** parse tokens in a string and return them as a vector */
 static std::vector<std::string> split(const std::string & str, const std::string & delimiter)
 {
@@ -163,17 +165,6 @@ static std::vector<std::string> split(const std::string & str, const std::string
 	}
 	result.push_back(s);
 	return result;
-}
-
-static int getRandomNumber(int min, int max)
-{
-	std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
-	std::chrono::system_clock::duration epoch{ now.time_since_epoch() };
-	std::mt19937 randomEngine{ 
-		std::chrono::duration_cast<std::chrono::duration<unsigned int,
-		std::milli>>(epoch).count() };
-	std::uniform_int_distribution<> intDist(min, max);
-	return intDist(randomEngine);
 }
 
 /** 
@@ -235,90 +226,3 @@ static inline uint64_t popCount(uint64_t n)
 	return __popcnt64(n);
 }
 #endif
-
-/**
- * @brief precalculates rays for sliding pieces for each square on the board
- */
-static void generateRays()
-{
-	
-	int bitCount = 0;
-	for(int i = 0; i < 8; i++)
-	{
-		for(int j = 0; j < 8; j++)
-		{
-			//NORTH
-			attackRays[bitCount][NORTH] = 0;
-			for(int k = 0; k < i; k++)
-			{
-				uint64_t x = uint64_t(1) << bitCount;
-				attackRays[bitCount][NORTH] |= (x >> ( 8*(k+1)));
-			}
-			//NORTH-EAST
-			attackRays[bitCount][NORTH_EAST] = 0;
-			int minNE = i < (7-j) ? i : (7-j);
-			for(int k = 0; k < minNE; k++)
-			{
-				attackRays[bitCount][NORTH_EAST] |= (uint64_t(1) << ( bitCount - ( 7*(k+1) ) ));
-			}
-			//EAST
-			attackRays[bitCount][EAST] = 0;
-			for(int k = 0; k < 7-j; k++)
-			{
-				attackRays[bitCount][EAST] |= (uint64_t(1) << ( bitCount + ( k+1 ) ));
-			}
-			//SOUTH-EAST
-			attackRays[bitCount][SOUTH_EAST] = 0;
-			int minSE = (7-i)<(7-j) ? 7-i : 7-j;
-			for(int k = 0; k < minSE; k++)
-			{
-				attackRays[bitCount][SOUTH_EAST] |= (uint64_t(1) << ( bitCount + ( 9*(k+1) ) ));
-			}
-			//SOUTH
-			attackRays[bitCount][SOUTH] = 0;
-			for(int k = 0; k < 7-i; k++)
-			{
-				attackRays[bitCount][SOUTH] |= (uint64_t(1) << ( bitCount + ( 8*(k+1) ) ));
-			}
-			//SOUTH-WEST
-			attackRays[bitCount][SOUTH_WEST] = 0;
-			int minSW = (7-i) < j ? (7-i) : j;
-			for(int k = 0; k < minSW; k++)
-			{
-				attackRays[bitCount][SOUTH_WEST] |= (uint64_t(1) << ( bitCount + ( 7*(k+1) ) ));
-			}
-			//WEST
-			attackRays[bitCount][WEST] = 0;
-			for(int k = 0; k < j; k++)
-			{
-				attackRays[bitCount][WEST] |= (uint64_t(1) << ( bitCount - ( k+1 ) ));
-			}
-			//NORTH-WEST
-			attackRays[bitCount][NORTH_WEST] = 0;
-			int minNW1 = j < i ? j : i;
-			int minNW2 = i < j ? i : j;
-			int minNW = minNW1 > minNW2 ? minNW1 : minNW2;
-			if(i == 7) minNW = j;
-			for(int k = 0; k < minNW; k++)
-			{
-				attackRays[bitCount][NORTH_WEST] |= (uint64_t(1) << ( bitCount - ( 9*(k+1) ) ));
-			}
-			bitCount++;
-		}
-	}
-	//debug print
-	// Bitboard b = 0;
-	// for(int i = 0; i < 64; i++)
-	// {
-	// 	for(int i2 = 0; i2 < 8; i2++)
-	// 	{
-	// 		for(int j2 = 0; j2 < 8; j2++)
-	// 		{
-	// 			b = (static_cast<uint64_t>(1) << (i2 * 8 + j2)) & attackRays[i][NORTH_WEST];
-	// 			if (b != 0) std::cout << " X "; else std::cout << " - ";
-	// 		}
-	// 		std::cout << "\n";
-	// 	}
-	// 	std::cout << "\n\n";
-	// }	
-}
