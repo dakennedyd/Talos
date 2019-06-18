@@ -124,9 +124,9 @@ void Engine::uci()
 		if (command[0] == "go")
 		{
 			//chessboard.generateMoves();
-			search(chessboard, 3, chessboard.mPlayerToMove);			
+			search(chessboard, 2, chessboard.mPlayerToMove);			
 			std::sort(chessboard.mPossibleMoves.begin(), chessboard.mPossibleMoves.end(),
-          		[] (Move const& a, Move const& b) { return a.mScore < b.mScore; });
+          		[] (Move const& a, Move const& b) { return a.mScore > b.mScore; });
 			//auto move = chessboard.mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
 			//auto move = chessboard.mPossibleMoves[0];
 			std::cout << "bestmove ";
