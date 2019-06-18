@@ -1,6 +1,7 @@
 #include <string>
 #include "Engine.h"
 #include "Move.h"
+#include <algorithm>
 
 
 Bitboard Engine::checkIfenPassantPossibleOnNextMove(const Square a, const Square b)
@@ -1692,7 +1693,10 @@ void Engine::generateMoves()
 		blackKingMoves();
 	}
 	std::cout << "bestmove ";
-	auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
+	std::sort(mPossibleMoves.begin(), mPossibleMoves.end(),
+          		[] (Move const& a, Move const& b) { return a.mScore > b.mScore; });
+	//auto move = mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
+	auto move = mPossibleMoves[0];
 	move.printMove();
 	//chessboard.makeMove(move);
 }
