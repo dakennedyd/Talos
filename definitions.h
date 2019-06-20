@@ -12,8 +12,8 @@
 
 #define LOG_ERROR(msg) std::cout << "ERROR:" << msg;
 
-static int INT_MAX_VALUE = std::numeric_limits<int>::min();
-static int INT_MIN_VALUE = std::numeric_limits<int>::max();
+static int INT_MIN_VALUE = std::numeric_limits<int>::min();
+static int INT_MAX_VALUE = std::numeric_limits<int>::max();
 
 typedef uint64_t Bitboard;
 

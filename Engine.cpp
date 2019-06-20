@@ -79,7 +79,7 @@ void Engine::uci()
 					if (command.size() > 3)
 					{
 						if(command[2] == "moves")
-						for (int i = 3; i < command.size(); ++i)
+						for (size_t i = 3; i < command.size(); ++i)
 						{
 							//todo: check for input errors!
 							auto a = STR_TO_SQUARE[command[i].substr(0, 2)];
@@ -124,7 +124,14 @@ void Engine::uci()
 		if (command[0] == "go")
 		{
 			//chessboard.generateMoves();
-			search(chessboard, 2, chessboard.mPlayerToMove);			
+			search(chessboard, 3, chessboard.mPlayerToMove);
+			if(chessboard.mPlayerToMove == BLACK)
+			{
+				for(auto &m : chessboard.mPossibleMoves)
+				{
+					m.mScore *= -1;
+				}
+			}
 			std::sort(chessboard.mPossibleMoves.begin(), chessboard.mPossibleMoves.end(),
           		[] (Move const& a, Move const& b) { return a.mScore > b.mScore; });
 			//auto move = chessboard.mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
@@ -155,29 +162,33 @@ int Engine::search(Chessboard &node, int depth, Player maxPlayer)
 	if(depth == 0 || node.mPossibleMoves.size() == 0)
 	{
 		node.setPositionValue();
+		//if(maxPlayer == BLACK) node.mPositionValue *= -1;
 		return node.mPositionValue;
 	}
-	auto child = node;
 	if(maxPlayer == WHITE)
 	{
 		node.mPositionValue = INT_MIN_VALUE;
-		for(auto n : node.mPossibleMoves)
+		for(auto &n : node.mPossibleMoves)
 		{
+			auto child = node;
 			child.makeMove(n);
-			node.mPositionValue = std::max(node.mPositionValue, search(child,depth-1, BLACK));
-			n.mScore = node.mPositionValue;
+			child.mPlayerToMove = BLACK;
+			n.mScore = search(child,depth-1, BLACK);
+			node.mPositionValue = std::max(node.mPositionValue, n.mScore);
 		}
-		return child.mPositionValue;
+		return node.mPositionValue;
 	}else
 	{
-		child.mPositionValue = INT_MAX_VALUE;
-		for(auto n : node.mPossibleMoves)
+		node.mPositionValue = INT_MAX_VALUE;
+		for(auto &n : node.mPossibleMoves)
 		{
+			auto child = node;
 			child.makeMove(n);
-			node.mPositionValue = std::min(node.mPositionValue, search(child,depth-1, WHITE));
-			n.mScore = node.mPositionValue;
+			child.mPlayerToMove = WHITE;
+			n.mScore = search(child,depth-1, WHITE);
+			node.mPositionValue = std::min(node.mPositionValue, n.mScore);
 		}
-		return child.mPositionValue;
+		return node.mPositionValue;
 	}
 	
 }

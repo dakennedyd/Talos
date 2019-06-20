@@ -199,9 +199,9 @@ void Chessboard::printBitboards()
 		"ALL_PIECES_BOARD",
 		"ENPASSANT_BOARD"
 	};
-	for(int n = 2; n< mBoard.size();n++)
+	for(size_t n = 2; n< mBoard.size();n++)
 	{
-		int count = 0;
+		//int count = 0;
 		Bitboard b;
 		std::cout << names[n-2] << "\n";
 		for (uint64_t i = 0; i < 8; i++)
@@ -406,21 +406,22 @@ void Chessboard::unmakeMove()
 
 void Chessboard::setPositionValue()
 {
-	auto whitePawns = popCount(mBoard[WHITE_PAWNS_BOARD]) * PIECES_VALUES[Piece::PAWN];
-	auto whiteKnights = popCount(mBoard[WHITE_KNIGHTS_BOARD]) * PIECES_VALUES[Piece::KNIGHT];
-	auto whiteBishops = popCount(mBoard[WHITE_BISHOPS_BOARD]) * PIECES_VALUES[Piece::BISHOP];
-	auto whiteRooks = popCount(mBoard[WHITE_ROOKS_BOARD]) * PIECES_VALUES[Piece::ROOK];
-	auto whiteQueens = popCount(mBoard[WHITE_QUEEN_BOARD]) * PIECES_VALUES[Piece::QUEEN];
-	auto black = whitePawns + whiteKnights + whiteBishops + whiteRooks + whiteQueens;
+	auto whitePawns = popCount(mBoard[WHITE_PAWNS_BOARD]) * PIECES_VALUES[PAWN];
+	auto whiteKnights = popCount(mBoard[WHITE_KNIGHTS_BOARD]) * PIECES_VALUES[KNIGHT];
+	auto whiteBishops = popCount(mBoard[WHITE_BISHOPS_BOARD]) * PIECES_VALUES[BISHOP];
+	auto whiteRooks = popCount(mBoard[WHITE_ROOKS_BOARD]) * PIECES_VALUES[ROOK];
+	auto whiteQueens = popCount(mBoard[WHITE_QUEEN_BOARD]) * PIECES_VALUES[QUEEN];
+	auto white = whitePawns + whiteKnights + whiteBishops + whiteRooks + whiteQueens;
 
-	auto blackPawns = popCount(mBoard[BLACK_PAWNS_BOARD]) * PIECES_VALUES[Piece::PAWN];
-	auto blackKnights = popCount(mBoard[BLACK_KNIGHTS_BOARD]) * PIECES_VALUES[Piece::KNIGHT];
-	auto blackBishops = popCount(mBoard[BLACK_BISHOPS_BOARD]) * PIECES_VALUES[Piece::BISHOP];
-	auto blackRooks = popCount(mBoard[BLACK_ROOKS_BOARD]) * PIECES_VALUES[Piece::ROOK];
-	auto blackQueens = popCount(mBoard[BLACK_QUEEN_BOARD]) * PIECES_VALUES[Piece::QUEEN];
-	auto white = blackPawns + blackKnights + blackBishops + blackRooks + blackQueens;
+	auto blackPawns = popCount(mBoard[BLACK_PAWNS_BOARD]) * PIECES_VALUES[PAWN];
+	auto blackKnights = popCount(mBoard[BLACK_KNIGHTS_BOARD]) * PIECES_VALUES[KNIGHT];
+	auto blackBishops = popCount(mBoard[BLACK_BISHOPS_BOARD]) * PIECES_VALUES[BISHOP];
+	auto blackRooks = popCount(mBoard[BLACK_ROOKS_BOARD]) * PIECES_VALUES[ROOK];
+	auto blackQueens = popCount(mBoard[BLACK_QUEEN_BOARD]) * PIECES_VALUES[QUEEN];
+	auto black = blackPawns + blackKnights + blackBishops + blackRooks + blackQueens;
 	
 	mPositionValue = white - black;
+	//if(mPlayerToMove == BLACK) mPositionValue *= -1;
 }
 
 void Chessboard::whitePawnMoves()

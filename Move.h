@@ -23,7 +23,7 @@ struct Move
 	Square mMoveFrom;
 	Square mMoveTo;
 	Piece mPromoteTo;
-	double mScore = 0;
+	int mScore = 0;
 	Bitboard mEnPassantBoard = 0; //sinals en passant possible on next move
 	bool enPassantCapture = false; //is this move an en passant capture?
 	Piece mCaptured = Piece::NO_PIECE;
