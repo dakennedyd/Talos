@@ -1,0 +1,5 @@
+TODO:
+1. fix bugs in sliding piece move generation
+2. fix bugs in search function
+3. search is REALLY slow
+4. add randomization when generating moves
