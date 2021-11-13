@@ -1,10 +1,10 @@
-#include "definitions.h"
+// #include "definitions.h"
 //#include "BoardState.h"
 #include "Engine.h"
 
 int main()
 {
-	
+
 	Engine engine;
 
 	//std::string input;

@@ -8,6 +8,7 @@
 struct Move
 {
 	//Move() = delete;
+	Move(){};
 	Move(const enum Piece piece, const enum Player side,
 	const enum Square moveFrom, const enum Square moveTo,
 	const enum Piece piecePromotion = Piece::NO_PIECE,
