@@ -52,6 +52,8 @@ Piece Chessboard::getPieceFromSquare(const Square square)
 		if (p & pieceBoard)
 			return Piece(i);
 	}
+	std::cout << "Command error: no piece on square\n";
+	exit(1);
 	return Piece::NO_PIECE;
 }
 
@@ -282,46 +284,140 @@ void Chessboard::printBoard()
 void Chessboard::printBitboards()
 {
 	std::vector<std::string> names = {
-		"WHITE_PAWNS_BOARD",
-		"BLACK_PAWNS_BOARD",
+		"WHITE_PAWNS_BOARD  ",
+		"BLACK_PAWNS_BOARD  ",
 		"WHITE_KNIGHTS_BOARD",
 		"BLACK_KNIGHTS_BOARD",
 		"WHITE_BISHOPS_BOARD",
 		"BLACK_BISHOPS_BOARD",
-		"WHITE_ROOKS_BOARD",
-		"BLACK_ROOKS_BOARD",
-		"WHITE_QUEEN_BOARD",
-		"BLACK_QUEEN_BOARD",
-		"WHITE_KING_BOARD",
-		"BLACK_KING_BOARD",
-		"WHITE_PIECES_BOARD",
-		"BLACK_PIECES_BOARD",
-		"ALL_PIECES_BOARD",
-		"ENPASSANT_BOARD"};
-	for (size_t n = 2; n < mBoard.size(); n++)
-	{
-		//int count = 0;
-		Bitboard b;
-		std::cout << names[n - 2] << "\n";
+		"WHITE_ROOKS_BOARD  ",
+		"BLACK_ROOKS_BOARD  ",
+		"WHITE_QUEEN_BOARD  ",
+		"BLACK_QUEEN_BOARD  ",
+		"WHITE_KING_BOARD   ",
+		"BLACK_KING_BOARD   ",
+		"WHITE_PIECES_BOARD ",
+		"BLACK_PIECES_BOARD ",
+		"ALL_PIECES_BOARD   ",
+		"ENPASSANT_BOARD    "};
+	{ //first 5 bitboards
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << names[c] << "           ";
+		}
+		std::cout << "\n";
+
 		for (uint64_t i = 0; i < 8; i++)
 		{
-			std::cout << 8 - i << "|";
-			for (uint64_t j = 0; j < 8; j++)
+			for (uint64_t bi = 2; bi < 7; bi++)
 			{
-				b = (uint64_t(1) << (i * 8 + j)) & mBoard[n];
-				if (b != 0)
+				std::cout << 8 - i << "|";
+				for (uint64_t j = 0; j < 8; j++)
 				{
-					std::cout << " X ";
-					continue;
+					Bitboard b = (uint64_t(1) << (i * 8 + j)) & mBoard[bi];
+					if (b != 0)
+					{
+						std::cout << " X ";
+					}
+					else
+					{
+						std::cout << " - ";
+					}
 				}
-				std::cout << " - ";
+				std::cout << "    ";
 			}
 			std::cout << "\n";
 		}
-		std::cout << "  ------------------------\n   a  b  c  d  e  f  g  h\n\n";
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << "  ------------------------    ";
+		}
+		std::cout << "\n";
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << "   a  b  c  d  e  f  g  h     ";
+		}
 	}
-}
+	std::cout << "\n\n";
+	{ //next 5 bitboards
+		for (uint64_t c = 5; c < 10; c++)
+		{
+			std::cout << names[c] << "           ";
+		}
+		std::cout << "\n";
 
+		for (uint64_t i = 0; i < 8; i++)
+		{
+			for (uint64_t bi = 7; bi < 12; bi++)
+			{
+				std::cout << 8 - i << "|";
+				for (uint64_t j = 0; j < 8; j++)
+				{
+					Bitboard b = (uint64_t(1) << (i * 8 + j)) & mBoard[bi];
+					if (b != 0)
+					{
+						std::cout << " X ";
+					}
+					else
+					{
+						std::cout << " - ";
+					}
+				}
+				std::cout << "    ";
+			}
+			std::cout << "\n";
+		}
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << "  ------------------------    ";
+		}
+		std::cout << "\n";
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << "   a  b  c  d  e  f  g  h     ";
+		}
+	}
+	std::cout << "\n\n";
+	{ //last 2 bitboards
+		for (uint64_t c = 10; c < 12; c++)
+		{
+			std::cout << names[c] << "           ";
+		}
+		std::cout << "\n";
+
+		for (uint64_t i = 0; i < 8; i++)
+		{
+			for (uint64_t bi = 12; bi < 14; bi++)
+			{
+				std::cout << 8 - i << "|";
+				for (uint64_t j = 0; j < 8; j++)
+				{
+					Bitboard b = (uint64_t(1) << (i * 8 + j)) & mBoard[bi];
+					if (b != 0)
+					{
+						std::cout << " X ";
+					}
+					else
+					{
+						std::cout << " - ";
+					}
+				}
+				std::cout << "    ";
+			}
+			std::cout << "\n";
+		}
+		for (uint64_t c = 0; c < 2; c++)
+		{
+			std::cout << "  ------------------------    ";
+		}
+		std::cout << "\n";
+		for (uint64_t c = 0; c < 2; c++)
+		{
+			std::cout << "   a  b  c  d  e  f  g  h     ";
+		}
+	}
+	std::cout << "\n\n";
+}
 void Chessboard::reset()
 {
 	mPlayerToMove = Player::WHITE;
@@ -344,41 +440,30 @@ void Chessboard::makeMove(const Move &move)
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
 	auto otherSide = (move.mSide + 1) % 2;
 
-	//determines which type of castling is available
-	// auto rook = mBoard[WHITE_ROOKS_BOARD + move.mSide] & moveFromSquare;
-	// auto king = mBoard[WHITE_KING_BOARD + move.mSide] & moveFromSquare;
-	// mKingNotMoved[KING_CASTLE[king & EFILE & RANK1]] = 0;
-	// mKingNotMoved[KING_CASTLE[king & EFILE & RANK8]] = 0;
-
-	//determines if and which rook moved for the first time
-	// mCastlingAvailable[ROOK_CASTLE[rook & RANK1 & AFILE]] = 0;
-	// mCastlingAvailable[ROOK_CASTLE[rook & RANK1 & HFILE]] = 0;
-	// mCastlingAvailable[ROOK_CASTLE[rook & RANK8 & HFILE]] = 0;
-	// mCastlingAvailable[ROOK_CASTLE[rook & RANK8 & AFILE]] = 0;
-
-	// mCastlingAvailable[1] &= mKingNotMoved[1];
-	// mCastlingAvailable[2] &= mKingNotMoved[2];
-	// mCastlingAvailable[3] &= mKingNotMoved[1];
-	// mCastlingAvailable[4] &= mKingNotMoved[2];
-
-	if (move.mPiece == Piece::ROOK && move.mMoveFrom == Square::H1)
-		mCastlingAvailable[1] = 0;
-	if (move.mPiece == Piece::ROOK && move.mMoveFrom == Square::A1)
-		mCastlingAvailable[3] = 0;
-	if (move.mPiece == Piece::ROOK && move.mMoveFrom == Square::H8)
-		mCastlingAvailable[2] = 0;
-	if (move.mPiece == Piece::ROOK && move.mMoveFrom == Square::A8)
-		mCastlingAvailable[4] = 0;
-
-	if (move.mPiece == Piece::KING && move.mSide == Player::WHITE && move.mMoveFrom == Square::E1)
+	if (move.mPiece == Piece::ROOK)
 	{
-		mCastlingAvailable[1] = 0;
-		mCastlingAvailable[3] = 0;
+		if (move.mMoveFrom == Square::H1)
+			mCastlingAvailable[1] = 0;
+		else if (move.mMoveFrom == Square::A1)
+			mCastlingAvailable[3] = 0;
+		else if (move.mMoveFrom == Square::H8)
+			mCastlingAvailable[2] = 0;
+		else if (move.mMoveFrom == Square::A8)
+			mCastlingAvailable[4] = 0;
 	}
-	if (move.mPiece == Piece::KING && move.mSide == Player::BLACK && move.mMoveFrom == Square::E8)
+
+	if (move.mPiece == Piece::KING)
 	{
-		mCastlingAvailable[2] = 0;
-		mCastlingAvailable[4] = 0;
+		if (move.mSide == Player::WHITE && move.mMoveFrom == Square::E1)
+		{
+			mCastlingAvailable[1] = 0;
+			mCastlingAvailable[3] = 0;
+		}
+		if (move.mSide == Player::BLACK && move.mMoveFrom == Square::E8)
+		{
+			mCastlingAvailable[2] = 0;
+			mCastlingAvailable[4] = 0;
+		}
 	}
 
 	if (move.mPromoteTo == Piece::NO_PIECE) //if move is not a promotion
@@ -405,7 +490,7 @@ void Chessboard::makeMove(const Move &move)
 	{
 		mBoard[move.mCaptured + otherSide] &= ~(moveToSquare << 8);
 		mBoard[ALL_PIECES_BOARD] &= ~(moveToSquare << 8);
-		mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~(moveToSquare << 8);
+		mBoard[WHITE_PIECES_BOARD + otherSide] &= ~(moveToSquare << 8);
 	}
 	//mBoard[move.mCaptured + otherSide] &= ~move.mEnPassantBoard; //~mBoard[ENPASSANT_BOARD];
 	mBoard[move.mCaptured + otherSide] &= ~moveToSquare;
@@ -452,8 +537,6 @@ void Chessboard::makeMove(const Move &move)
 
 void Chessboard::unmakeMove()
 {
-	// auto move = mHistory.back();
-	// mHistory.pop_back();
 	auto move = mLastMove;
 	mLastMove = Move();
 
@@ -466,32 +549,36 @@ void Chessboard::unmakeMove()
 
 	mBoard[ALL_PIECES_BOARD] |= moveFromSquare; //add piece to ALL_PIECES_BOARD
 
-	if (move.mCaptured == Piece::NO_PIECE) //if move is not a capture
+	if (move.mCaptured != Piece::NO_PIECE) //if move is a capture
 	{
-		mBoard[ALL_PIECES_BOARD] &= ~moveToSquare; //remove piece from ALL_PIECES_BOARD
+		if (move.enPassantCapture)
+		{
+			Bitboard CapturedPawnPosition[2] = {moveToSquare << 8,
+												moveToSquare >> 8};
+
+			//restore the captured pawn to the color bitboard
+			mBoard[WHITE_PIECES_BOARD + otherSide] |= CapturedPawnPosition[otherSide];
+			//restore the captured pawn to the pawn bitboard
+			mBoard[WHITE_PAWNS_BOARD + otherSide] |= CapturedPawnPosition[otherSide];
+			mBoard[ENPASSANT_BOARD] = CapturedPawnPosition[otherSide];
+			//restore captured pawn to ALL_PIECES_BOARD
+			mBoard[ALL_PIECES_BOARD] |= CapturedPawnPosition[otherSide];
+		}
+		else
+		{
+			//restore the captured piece to the color bitboard
+			mBoard[WHITE_PIECES_BOARD + otherSide] |= moveToSquare;
+			//restore the captured piece to the piece bitboard
+			mBoard[move.mCaptured + otherSide] |= moveToSquare;
+		}
 	}
 	else
 	{
-		//if move is capture restore other side pieces to color bitboard
-		mBoard[WHITE_PIECES_BOARD + otherSide] |= moveToSquare;
+		mBoard[ALL_PIECES_BOARD] &= ~moveToSquare; //remove piece from ALL_PIECES_BOARD
 	}
 
 	mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~moveToSquare;  //remove piece from color bitboard
 	mBoard[WHITE_PIECES_BOARD + move.mSide] |= moveFromSquare; //add piece to color bitboard
-
-	//only meaningful if move was a capture
-	if (move.enPassantCapture)
-	{
-		Bitboard CapturedPawnPosition[2] = {moveToSquare << 8,
-											moveToSquare >> 8};
-		mBoard[WHITE_PAWNS_BOARD + otherSide] |= CapturedPawnPosition[otherSide];
-		mBoard[ENPASSANT_BOARD] = CapturedPawnPosition[otherSide];
-	}
-	else
-	{
-		//restore captured piece to the board
-		mBoard[move.mCaptured + otherSide] |= moveToSquare;
-	}
 
 	//remove the promoted piece from its board
 	//only meaningful if last move was a promotion
@@ -630,7 +717,7 @@ void Chessboard::whitePawnMoves()
 		auto m = Move(Piece::PAWN, Player::WHITE, Square(i + 9), Square(i));
 		setMoveCapture(m);
 		m.enPassantCapture = true;
-		m.mEnPassantBoard = mBoard[ENPASSANT_BOARD] << 8;
+		//m.mEnPassantBoard = mBoard[ENPASSANT_BOARD] << 8;
 		makeMove(m);
 		if (!checkIfSquaresAreAttackedByBlack(mBoard[WHITE_KING_BOARD]))
 		{
@@ -1611,17 +1698,17 @@ void Chessboard::blackBishopMoves()
 void Chessboard::whiteQueenMoves()
 {
 	auto queenBits = getBitsPosition(mBoard[WHITE_QUEEN_BOARD]);
-	for (auto queenBitsPos : queenBits) //for every white rook on the board
+	for (auto queenPos : queenBits) //for every white queen on the board
 	{
 		Bitboard queenAttacks = 0, temp;
 		Square firstBlocker;
 
 		{
 			//NORTH ATTACK
-			temp = attackRays[queenBitsPos][NORTH] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][NORTH] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getHighestSetBit(temp);
 			temp = attackRays[firstBlocker][NORTH];
-			temp = attackRays[queenBitsPos][NORTH] & ~temp;
+			temp = attackRays[queenPos][NORTH] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1631,10 +1718,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//EAST ATTACK
-			temp = attackRays[queenBitsPos][EAST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][EAST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getLowestSetBit(temp);
 			temp = attackRays[firstBlocker][EAST];
-			temp = attackRays[queenBitsPos][EAST] & ~temp;
+			temp = attackRays[queenPos][EAST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1644,10 +1731,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//SOUTH ATTACK
-			temp = attackRays[queenBitsPos][SOUTH] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][SOUTH] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getLowestSetBit(temp);
 			temp = attackRays[firstBlocker][SOUTH];
-			temp = attackRays[queenBitsPos][SOUTH] & ~temp;
+			temp = attackRays[queenPos][SOUTH] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1657,10 +1744,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//WEST ATTACK
-			temp = attackRays[queenBitsPos][WEST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][WEST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getHighestSetBit(temp);
 			temp = attackRays[firstBlocker][WEST];
-			temp = attackRays[queenBitsPos][WEST] & ~temp;
+			temp = attackRays[queenPos][WEST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1670,10 +1757,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//NORTH-EAST ATTACK
-			temp = attackRays[queenBitsPos][NORTH_EAST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][NORTH_EAST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getHighestSetBit(temp);
 			temp = attackRays[firstBlocker][NORTH_EAST];
-			temp = attackRays[queenBitsPos][NORTH_EAST] & ~temp;
+			temp = attackRays[queenPos][NORTH_EAST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1683,10 +1770,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//SOUTH-EAST ATTACK
-			temp = attackRays[queenBitsPos][SOUTH_EAST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][SOUTH_EAST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getLowestSetBit(temp);
 			temp = attackRays[firstBlocker][SOUTH_EAST];
-			temp = attackRays[queenBitsPos][SOUTH_EAST] & ~temp;
+			temp = attackRays[queenPos][SOUTH_EAST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1696,10 +1783,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//SOUTH-WEST ATTACK
-			temp = attackRays[queenBitsPos][SOUTH_WEST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][SOUTH_WEST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getLowestSetBit(temp);
 			temp = attackRays[firstBlocker][SOUTH_WEST];
-			temp = attackRays[queenBitsPos][SOUTH_WEST] & ~temp;
+			temp = attackRays[queenPos][SOUTH_WEST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1709,10 +1796,10 @@ void Chessboard::whiteQueenMoves()
 		}
 		{
 			//NORTH-WEST ATTACK
-			temp = attackRays[queenBitsPos][NORTH_WEST] & mBoard[ALL_PIECES_BOARD];
+			temp = attackRays[queenPos][NORTH_WEST] & mBoard[ALL_PIECES_BOARD];
 			firstBlocker = getHighestSetBit(temp);
 			temp = attackRays[firstBlocker][NORTH_WEST];
-			temp = attackRays[queenBitsPos][NORTH_WEST] & ~temp;
+			temp = attackRays[queenPos][NORTH_WEST] & ~temp;
 
 			//can't capture own pieces
 			Bitboard firstBlockerBitboard = uint64_t(1) << firstBlocker;
@@ -1724,7 +1811,7 @@ void Chessboard::whiteQueenMoves()
 		auto queenAttacksBits = getBitsPosition(queenAttacks);
 		for (auto &i : queenAttacksBits)
 		{
-			auto m = Move(Piece::QUEEN, Player::WHITE, Square(queenBitsPos), Square(i));
+			auto m = Move(Piece::QUEEN, Player::WHITE, Square(queenPos), Square(i));
 			setMoveCapture(m);
 			makeMove(m);
 			if (!checkIfSquaresAreAttackedByBlack(mBoard[WHITE_KING_BOARD]))
