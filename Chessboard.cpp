@@ -57,39 +57,69 @@ Piece Chessboard::getPieceFromSquare(const Square square)
 	return Piece::NO_PIECE;
 }
 
-void Chessboard::setIfEnPassantCapture(Move &move)
-{
-	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
-	auto otherSide = (move.mSide + 1) % 2;
-	if (!(moveToSquare & mBoard[WHITE_PIECES_BOARD + otherSide]))
-		move.enPassantCapture = true;
-}
-
 void Chessboard::setMoveCapture(Move &move)
 {
-	setIfEnPassantCapture(move);
 	//Bitboard moveFromSquare = Bitboard(1) << move.mMoveFrom;
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
 	auto otherSide = (move.mSide + 1) % 2;
 
-	int i;
-	for (i = 2; i < 13; i += 2)
+	if (moveToSquare & mBoard[WHITE_PIECES_BOARD + otherSide])
 	{
-		if (move.enPassantCapture && mBoard[i + otherSide] & (moveToSquare << 8))
+		for (int i = 2; i < 13; i += 2)
 		{
-			move.mCaptured = Piece(i);
-			move.mScore = PIECES_VALUES[i];
-			return;
-		}
-		else if (mBoard[i + otherSide] & moveToSquare)
-		{
-			//auto x = getBitsPosition(n);
-			//move.mCaptured = Piece(x[0]);
-			move.mCaptured = Piece(i);
-			move.mScore = PIECES_VALUES[i];
-			return;
+			if (mBoard[i + otherSide] & moveToSquare)
+			{
+				move.mCaptured = Piece(i);
+				move.mScore = PIECES_VALUES[i];
+				return;
+			}
 		}
 	}
+	else if(move.mPiece == Piece::PAWN) //checks for enPassant capture
+	{
+		if(move.mSide == WHITE )
+		{
+			if((moveToSquare<<8) & mBoard[BLACK_PIECES_BOARD])
+			{
+				move.mCaptured = Piece::PAWN;
+				move.enPassantCapture = true;
+				move.mScore = PIECES_VALUES[Piece::PAWN];
+				return;
+			}
+			
+		}else 
+		{
+			if((moveToSquare>>8) & mBoard[WHITE_PIECES_BOARD])
+			{
+				move.mCaptured = Piece::PAWN;
+				move.enPassantCapture = true;
+				move.mScore = PIECES_VALUES[Piece::PAWN];
+				return;
+			}
+		}
+	}
+
+	// if (move.mPiece == Piece::PAWN && (moveToSquare & mBoard[WHITE_PIECES_BOARD + otherSide]) != 0)
+	// 	move.enPassantCapture = true;
+
+	// int i;
+	// for (i = 2; i < 13; i += 2)
+	// {
+	// 	if (move.enPassantCapture && mBoard[i + otherSide] & (moveToSquare << 8))
+	// 	{
+	// 		move.mCaptured = Piece(i);
+	// 		move.mScore = PIECES_VALUES[i];
+	// 		return;
+	// 	}
+	// 	else if (mBoard[i + otherSide] & moveToSquare)
+	// 	{
+	// 		//auto x = getBitsPosition(n);
+	// 		//move.mCaptured = Piece(x[0]);
+	// 		move.mCaptured = Piece(i);
+	// 		move.mScore = PIECES_VALUES[i];
+	// 		return;
+	// 	}
+	// }
 }
 
 void Chessboard::setState(const std::string &FENstring)
@@ -378,8 +408,8 @@ void Chessboard::printBitboards()
 		}
 	}
 	std::cout << "\n\n";
-	{ //last 2 bitboards
-		for (uint64_t c = 10; c < 12; c++)
+	{ //next 5
+		for (uint64_t c = 10; c < 15; c++)
 		{
 			std::cout << names[c] << "           ";
 		}
@@ -387,7 +417,7 @@ void Chessboard::printBitboards()
 
 		for (uint64_t i = 0; i < 8; i++)
 		{
-			for (uint64_t bi = 12; bi < 14; bi++)
+			for (uint64_t bi = 12; bi < 17; bi++)
 			{
 				std::cout << 8 - i << "|";
 				for (uint64_t j = 0; j < 8; j++)
@@ -406,12 +436,51 @@ void Chessboard::printBitboards()
 			}
 			std::cout << "\n";
 		}
-		for (uint64_t c = 0; c < 2; c++)
+		for (uint64_t c = 0; c < 5; c++)
 		{
 			std::cout << "  ------------------------    ";
 		}
 		std::cout << "\n";
-		for (uint64_t c = 0; c < 2; c++)
+		for (uint64_t c = 0; c < 5; c++)
+		{
+			std::cout << "   a  b  c  d  e  f  g  h     ";
+		}
+	}
+	std::cout << "\n\n";
+	{ //last one
+		for (uint64_t c = 15; c < 16; c++)
+		{
+			std::cout << names[c] << "           ";
+		}
+		std::cout << "\n";
+
+		for (uint64_t i = 0; i < 8; i++)
+		{
+			for (uint64_t bi = 17; bi < 18; bi++)
+			{
+				std::cout << 8 - i << "|";
+				for (uint64_t j = 0; j < 8; j++)
+				{
+					Bitboard b = (uint64_t(1) << (i * 8 + j)) & mBoard[bi];
+					if (b != 0)
+					{
+						std::cout << " X ";
+					}
+					else
+					{
+						std::cout << " - ";
+					}
+				}
+				std::cout << "    ";
+			}
+			std::cout << "\n";
+		}
+		for (uint64_t c = 0; c < 1; c++)
+		{
+			std::cout << "  ------------------------    ";
+		}
+		std::cout << "\n";
+		for (uint64_t c = 0; c < 1; c++)
 		{
 			std::cout << "   a  b  c  d  e  f  g  h     ";
 		}

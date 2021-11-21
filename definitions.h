@@ -39,11 +39,11 @@ static Bitboard RANK6 = RANK5 >> 8;
 static Bitboard RANK7 = RANK6 >> 8;
 static Bitboard RANK8 = RANK7 >> 8;
 
-static double PAWN_VALUE = 1.0;
-static double KNIGHT_VALUE = 3.0;
-static double BISHOP_VALUE = 3.5;
-static double ROOK_VALUE = 5.0;
-static double QUEEN_VALUE = 9.0;
+// static double PAWN_VALUE = 1.0;
+// static double KNIGHT_VALUE = 3.0;
+// static double BISHOP_VALUE = 3.5;
+// static double ROOK_VALUE = 5.0;
+// static double QUEEN_VALUE = 9.0;
 static std::vector<int> PIECES_VALUES = {0,0,100,0,300,0,350,0,500,0,900};
 
 static const std::string NAME = "Talos 0.2 pre-Alpha";
