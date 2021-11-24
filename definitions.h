@@ -39,15 +39,16 @@ static Bitboard RANK6 = RANK5 >> 8;
 static Bitboard RANK7 = RANK6 >> 8;
 static Bitboard RANK8 = RANK7 >> 8;
 
-// static double PAWN_VALUE = 1.0;
-// static double KNIGHT_VALUE = 3.0;
-// static double BISHOP_VALUE = 3.5;
-// static double ROOK_VALUE = 5.0;
-// static double QUEEN_VALUE = 9.0;
-static std::vector<int> PIECES_VALUES = {0,0,100,0,300,0,350,0,500,0,900};
+static int PAWN_VALUE = 100;
+static int KNIGHT_VALUE = 300;
+static int BISHOP_VALUE = 350;
+static int ROOK_VALUE = 500;
+static int QUEEN_VALUE = 900;
+static int KING_VALUE = 999999; //INT_MAX_VALUE - (PAWN_VALUE*8+KNIGHT_VALUE*2+BISHOP_VALUE*2+ROOK_VALUE*2+QUEEN_VALUE*9);
+static std::vector<int> PIECES_VALUES = {0,0,PAWN_VALUE,0,KNIGHT_VALUE,0,BISHOP_VALUE,0,ROOK_VALUE,0,QUEEN_VALUE,0,KING_VALUE};
 
 static const std::string NAME = "Talos 0.2 pre-Alpha";
-static const std::string AUTHOR = "David A. Kennedy";
+static const std::string AUTHOR = "David A Kennedy D";
 static const std::string START_POS_FEN_STRING = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 static int NO_BOARD = 0;

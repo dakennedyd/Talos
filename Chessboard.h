@@ -51,7 +51,7 @@ public:
 	Bitboard checkIfenPassantPossibleOnNextMove(const Square a, const Square b);
 	Piece getPieceFromSquare(const Square square);
 
-	void setPositionValue();
+	void evaluation();
 	void printBitboard(const Bitboard bitboard);
 	void printBitboards();
 

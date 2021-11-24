@@ -509,44 +509,9 @@ void Chessboard::makeMove(const Move &move)
 	Bitboard moveToSquare = Bitboard(1) << move.mMoveTo;
 	auto otherSide = (move.mSide + 1) % 2;
 
-	if (move.mPiece == Piece::ROOK)
-	{
-		if (move.mMoveFrom == Square::H1)
-			mCastlingAvailable[1] = 0;
-		else if (move.mMoveFrom == Square::A1)
-			mCastlingAvailable[3] = 0;
-		else if (move.mMoveFrom == Square::H8)
-			mCastlingAvailable[2] = 0;
-		else if (move.mMoveFrom == Square::A8)
-			mCastlingAvailable[4] = 0;
-	}
-
-	if (move.mPiece == Piece::KING)
-	{
-		if (move.mSide == Player::WHITE && move.mMoveFrom == Square::E1)
-		{
-			mCastlingAvailable[1] = 0;
-			mCastlingAvailable[3] = 0;
-		}
-		if (move.mSide == Player::BLACK && move.mMoveFrom == Square::E8)
-		{
-			mCastlingAvailable[2] = 0;
-			mCastlingAvailable[4] = 0;
-		}
-	}
-
-	if (move.mPromoteTo == Piece::NO_PIECE) //if move is not a promotion
-	{
-		//add the piece to dest square
-		mBoard[move.mPiece + move.mSide] |= moveToSquare;
-	}
-	else
-	{
-		//add the promoted piece to dest square
-		mBoard[move.mPromoteTo + move.mSide] |= moveToSquare;
-	}
-	//remove piece from starting square(from piece's bitboard)
-	mBoard[move.mPiece + move.mSide] &= ~moveFromSquare;
+	mBoard[move.mPiece + move.mSide] |= moveToSquare; 			//add the piece to dest square
+	mBoard[move.mPromoteTo + move.mSide] |= moveToSquare;		//add the promoted piece to dest square
+	mBoard[move.mPiece + move.mSide] &= ~moveFromSquare;		//remove piece from starting square
 
 	mBoard[ALL_PIECES_BOARD] |= moveToSquare;					//add piece to ALL_PIECES_BOARD
 	mBoard[ALL_PIECES_BOARD] &= ~moveFromSquare;				//remove piece from ALL_PIECES_BOARD
@@ -557,24 +522,51 @@ void Chessboard::makeMove(const Move &move)
 	//only meaningful if move is a capture
 	if (move.enPassantCapture)
 	{
-		mBoard[move.mCaptured + otherSide] &= ~(moveToSquare << 8);
-		mBoard[ALL_PIECES_BOARD] &= ~(moveToSquare << 8);
-		mBoard[WHITE_PIECES_BOARD + otherSide] &= ~(moveToSquare << 8);
+		Bitboard CapturedPawnPosition[2] = {moveToSquare << 8,
+											moveToSquare >> 8};
+		mBoard[move.mCaptured + otherSide] &= ~(CapturedPawnPosition[otherSide]);
+		mBoard[ALL_PIECES_BOARD] &= ~(CapturedPawnPosition[otherSide]);
+		mBoard[WHITE_PIECES_BOARD + otherSide] &= ~(CapturedPawnPosition[otherSide]);
 	}
 	//mBoard[move.mCaptured + otherSide] &= ~move.mEnPassantBoard; //~mBoard[ENPASSANT_BOARD];
-	mBoard[move.mCaptured + otherSide] &= ~moveToSquare;
-	mBoard[WHITE_PIECES_BOARD + otherSide] &= ~moveToSquare;
+	mBoard[move.mCaptured + otherSide] &= ~moveToSquare;		//removes captured piece from the board
+	mBoard[WHITE_PIECES_BOARD + otherSide] &= ~moveToSquare;	//removes captured piece from the color board
 
+	if (move.mPiece == Piece::ROOK)								//sets castling flags
+	{
+		if (move.mMoveFrom == Square::H1)
+			mCastlingAvailable[1] = 0;
+		else if (move.mMoveFrom == Square::A1)
+			mCastlingAvailable[3] = 0;
+		else if (move.mMoveFrom == Square::H8)
+			mCastlingAvailable[2] = 0;
+		else if (move.mMoveFrom == Square::A8)
+			mCastlingAvailable[4] = 0;
+	}
+	if (move.mPiece == Piece::KING)								//sets castling flags
+	{
+		if (move.mMoveFrom == Square::E1)
+		{
+			mCastlingAvailable[1] = 0;
+			mCastlingAvailable[3] = 0;
+		}
+		if (move.mMoveFrom == Square::E8)
+		{
+			mCastlingAvailable[2] = 0;
+			mCastlingAvailable[4] = 0;
+		}
+	}
 	if (move.mCastle == Castling::KINGSIDE)
 	{
 		Bitboard rookColor[2] = {RANK1, RANK8};
 		Bitboard rook = mBoard[Piece::ROOK + move.mSide] & HFILE;
 		rook &= rookColor[move.mSide];
-		mBoard[Piece::ROOK + move.mSide] |= (rook >> 2);
+		Bitboard rookMoveTo[2] = {rook >> 2, rook << 2};
+		mBoard[Piece::ROOK + move.mSide] |= (rookMoveTo[move.mSide]);
 		mBoard[Piece::ROOK + move.mSide] &= ~rook;
-		mBoard[ALL_PIECES_BOARD] |= (rook >> 2);
+		mBoard[ALL_PIECES_BOARD] |= (rookMoveTo[move.mSide]);
 		mBoard[ALL_PIECES_BOARD] &= ~rook;
-		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook >> 2);
+		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rookMoveTo[move.mSide]);
 		mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
 		mCastlingAvailable[1] = 0;
 		mCastlingAvailable[2] = 0;
@@ -586,11 +578,12 @@ void Chessboard::makeMove(const Move &move)
 		Bitboard rookColor[2] = {RANK1, RANK8};
 		Bitboard rook = mBoard[Piece::ROOK + move.mSide] & AFILE;
 		rook &= rookColor[move.mSide];
-		mBoard[Piece::ROOK + move.mSide] |= (rook << 3);
+		Bitboard rookMoveTo[2] = {rook >> 3, rook << 3};
+		mBoard[Piece::ROOK + move.mSide] |= (rookMoveTo[move.mSide]);
 		mBoard[Piece::ROOK + move.mSide] &= ~rook;
-		mBoard[ALL_PIECES_BOARD] |= (rook << 3);
+		mBoard[ALL_PIECES_BOARD] |= (rookMoveTo[move.mSide]);
 		mBoard[ALL_PIECES_BOARD] &= ~rook;
-		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rook << 3);
+		mBoard[WHITE_PIECES_BOARD + move.mSide] |= (rookMoveTo[move.mSide]);
 		mBoard[WHITE_PIECES_BOARD + move.mSide] &= ~rook;
 		mCastlingAvailable[1] = 0;
 		mCastlingAvailable[2] = 0;
@@ -681,21 +674,23 @@ void Chessboard::unmakeMove()
 	//mPlayerToMove = Player(otherSide);
 }
 
-void Chessboard::setPositionValue()
+void Chessboard::evaluation()
 {
-	auto whitePawns = popCount(mBoard[WHITE_PAWNS_BOARD]) * PIECES_VALUES[PAWN];
-	auto whiteKnights = popCount(mBoard[WHITE_KNIGHTS_BOARD]) * PIECES_VALUES[KNIGHT];
-	auto whiteBishops = popCount(mBoard[WHITE_BISHOPS_BOARD]) * PIECES_VALUES[BISHOP];
-	auto whiteRooks = popCount(mBoard[WHITE_ROOKS_BOARD]) * PIECES_VALUES[ROOK];
-	auto whiteQueens = popCount(mBoard[WHITE_QUEEN_BOARD]) * PIECES_VALUES[QUEEN];
-	auto white = whitePawns + whiteKnights + whiteBishops + whiteRooks + whiteQueens;
+	auto whitePawns = popCount(mBoard[WHITE_PAWNS_BOARD]) * PAWN_VALUE;
+	auto whiteKnights = popCount(mBoard[WHITE_KNIGHTS_BOARD]) * KNIGHT_VALUE;
+	auto whiteBishops = popCount(mBoard[WHITE_BISHOPS_BOARD]) * BISHOP_VALUE;
+	auto whiteRooks = popCount(mBoard[WHITE_ROOKS_BOARD]) * ROOK_VALUE;
+	auto whiteQueens = popCount(mBoard[WHITE_QUEEN_BOARD]) * QUEEN_VALUE;
+	auto whiteKing = popCount(mBoard[WHITE_KING_BOARD]) * KING_VALUE;
+	auto white = whitePawns + whiteKnights + whiteBishops + whiteRooks + whiteQueens + whiteKing;
 
-	auto blackPawns = popCount(mBoard[BLACK_PAWNS_BOARD]) * PIECES_VALUES[PAWN];
-	auto blackKnights = popCount(mBoard[BLACK_KNIGHTS_BOARD]) * PIECES_VALUES[KNIGHT];
-	auto blackBishops = popCount(mBoard[BLACK_BISHOPS_BOARD]) * PIECES_VALUES[BISHOP];
-	auto blackRooks = popCount(mBoard[BLACK_ROOKS_BOARD]) * PIECES_VALUES[ROOK];
-	auto blackQueens = popCount(mBoard[BLACK_QUEEN_BOARD]) * PIECES_VALUES[QUEEN];
-	auto black = blackPawns + blackKnights + blackBishops + blackRooks + blackQueens;
+	auto blackPawns = popCount(mBoard[BLACK_PAWNS_BOARD]) * PAWN_VALUE;
+	auto blackKnights = popCount(mBoard[BLACK_KNIGHTS_BOARD]) * KNIGHT_VALUE;
+	auto blackBishops = popCount(mBoard[BLACK_BISHOPS_BOARD]) * BISHOP_VALUE;
+	auto blackRooks = popCount(mBoard[BLACK_ROOKS_BOARD]) * ROOK_VALUE;
+	auto blackQueens = popCount(mBoard[BLACK_QUEEN_BOARD]) * QUEEN_VALUE;
+	auto blackKing = popCount(mBoard[BLACK_KING_BOARD]) * KING_VALUE;
+	auto black = blackPawns + blackKnights + blackBishops + blackRooks + blackQueens + blackKing;
 
 	mPositionValue = white - black;
 	//if(mPlayerToMove == BLACK) mPositionValue *= -1;

@@ -50,7 +50,7 @@ void Engine::uci()
 				chessboard.setState(START_POS_FEN_STRING);
 				validcommand = true;
 			}
-			if (command[0] == "d" || command[0] == "draw" || command[0] == "drawboard")
+			if (command[0] == "d" || command[0] == "draw" || command[0] == "drawboard" || command[0] == "print")
 			{
 				chessboard.printBoard();
 				validcommand = true;
@@ -81,31 +81,31 @@ void Engine::uci()
 							for (size_t i = 3; i < command.size(); ++i)
 							{
 								//todo: check for input errors!
-								auto a = STR_TO_SQUARE[command[i].substr(0, 2)];
-								auto b = STR_TO_SQUARE[command[i].substr(2, 2)];
-								auto p = command[i].substr(4);
+								auto moveFromSquare = STR_TO_SQUARE[command[i].substr(0, 2)];
+								auto moveToSquare = STR_TO_SQUARE[command[i].substr(2, 2)];
+								auto promotion = command[i].substr(4);
 								Piece promoted = Piece::NO_PIECE;
-								if (p == "q")
+								if (promotion == "q")
 									promoted = Piece::QUEEN;
-								if (p == "r")
+								if (promotion == "r")
 									promoted = Piece::ROOK;
-								if (p == "b")
+								if (promotion == "b")
 									promoted = Piece::BISHOP;
-								if (p == "n")
+								if (promotion == "n")
 									promoted = Piece::KNIGHT;
 								// auto m = Move(a, b);
 
-								auto op = chessboard.checkIfenPassantPossibleOnNextMove(a, b);
-								auto piece = chessboard.getPieceFromSquare(a);
+								auto op = chessboard.checkIfenPassantPossibleOnNextMove(moveFromSquare, moveToSquare);
+								auto piece = chessboard.getPieceFromSquare(moveFromSquare);
 
-								auto m = Move(piece, chessboard.mPlayerToMove, a, b, promoted, op);
-								if (a == Square::E1 && b == Square::G1 && piece == Piece::KING && chessboard.mPlayerToMove == Player::WHITE)
+								auto m = Move(piece, chessboard.mPlayerToMove, moveFromSquare, moveToSquare, promoted, op);
+								if (moveFromSquare == Square::E1 && moveToSquare == Square::G1 && piece == Piece::KING)
 									m.mCastle = Castling::KINGSIDE;
-								if (a == Square::E1 && b == Square::C1 && piece == Piece::KING && chessboard.mPlayerToMove == Player::WHITE)
+								if (moveFromSquare == Square::E1 && moveToSquare == Square::C1 && piece == Piece::KING)
 									m.mCastle = Castling::QUEENSIDE;
-								if (a == Square::E8 && b == Square::G8 && piece == Piece::KING && chessboard.mPlayerToMove == Player::BLACK)
+								if (moveFromSquare == Square::E8 && moveToSquare == Square::G8 && piece == Piece::KING)
 									m.mCastle = Castling::KINGSIDE;
-								if (a == Square::E8 && b == Square::C8 && piece == Piece::KING && chessboard.mPlayerToMove == Player::BLACK)
+								if (moveFromSquare == Square::E8 && moveToSquare == Square::C8 && piece == Piece::KING)
 									m.mCastle = Castling::QUEENSIDE;
 
 								chessboard.setMoveCapture(m);
@@ -123,7 +123,7 @@ void Engine::uci()
 		if (command[0] == "go")
 		{
 			//chessboard.generateMoves();
-			search(chessboard, 3, chessboard.mPlayerToMove);
+			search(chessboard, 4, chessboard.mPlayerToMove);
 			if (chessboard.mPlayerToMove == BLACK)
 			{
 				for (auto &m : chessboard.mPossibleMoves)
@@ -136,6 +136,8 @@ void Engine::uci()
 					  { return a.mScore > b.mScore; });
 			//auto move = chessboard.mPossibleMoves[getRandomNumber(0, mPossibleMoves.size()-1)];
 			//auto move = chessboard.mPossibleMoves[0];
+			
+			std::cout << "info multipv 1 depth 3 score cp " << chessboard.mPossibleMoves[0].mScore << "\n";
 			std::cout << "bestmove ";
 			//move.printMove();
 			chessboard.mPossibleMoves[0].printMove();
@@ -161,7 +163,7 @@ int Engine::search(Chessboard &node, int depth, Player maxPlayer)
 	node.generateMoves();
 	if (depth == 0 || node.mPossibleMoves.size() == 0)
 	{
-		node.setPositionValue();
+		node.evaluation();
 		//if(maxPlayer == BLACK) node.mPositionValue *= -1;
 		return node.mPositionValue;
 	}
