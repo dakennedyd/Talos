@@ -78,7 +78,7 @@ enum Square {
 	A4, B4, C4, D4, E4, F4, G4, H4,
 	A3, B3, C3, D3, E3, F3, G3, H3,
 	A2, B2, C2, D2, E2, F2, G2, H2,
-	A1, B1, C1, D1, E1, F1, G1, H1
+	A1, B1, C1, D1, E1, F1, G1, H1, NoSquare
 };
 
 //used to determine if the rook moved for castling
@@ -193,12 +193,18 @@ static std::vector<uint64_t> getBitsPosition(const Bitboard b)
 #if defined(__GNUC__)
 static inline Square getLowestSetBit(uint64_t n)
 {
-  return Square(__builtin_ctzll(n));
+	if (n == 0)
+		return Square(NoSquare);
+	else
+  		return Square(__builtin_ctzll(n));
 }
 
 static inline Square getHighestSetBit(uint64_t n)
 {
-  return Square(63 ^ __builtin_clzll(n));
+	if (n == 0) 
+		return Square(NoSquare);
+	else
+  		return Square(63 ^ __builtin_clzll(n));
 }
 
 static inline uint64_t popCount(uint64_t n)

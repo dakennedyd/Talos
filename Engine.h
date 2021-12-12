@@ -13,7 +13,10 @@ public:
 	void init();		
 	Chessboard & getChessBoard(){return chessboard;};
 	int search(Chessboard &node, int depth, Player maxPlayer);
+	uint64_t perft(const int depth);
 private:		
-	Chessboard chessboard;	
+	Chessboard chessboard;
+	//uint64_t mPerftNodes = 0;
+	//uint64_t mNodesCounter = 0;
 };
 

@@ -2,6 +2,7 @@
 #include <string>
 #include <queue>
 #include <unordered_map>
+#include <deque>
 
 #include "definitions.h"
 #include "Move.h"
@@ -19,6 +20,7 @@ public:
 	void makeMove(const Move &move);
 	void unmakeMove();
 	void generateMoves();
+	std::vector<Move> generateMovesPerft();
 	// int getRandomNumber(int min, int max)
 	// {
 	// 	std::uniform_int_distribution<> intDist(min, max);
@@ -48,6 +50,7 @@ public:
 	 */
 	bool checkIfSquaresAreAttackedByWhite(const Bitboard squares);
 	bool checkIfSquaresAreAttackedByBlack(const Bitboard squares);
+	bool isKingOnCheck(const Player player);
 	Bitboard checkIfenPassantPossibleOnNextMove(const Square a, const Square b);
 	Piece getPieceFromSquare(const Square square);
 
@@ -64,11 +67,12 @@ public:
 	enum Player mPlayerToMove = Player::WHITE;
 	std::vector<Bitboard> mBoard;
 	//std::vector<Move> mHistory;
-	Move mLastMove;
+	//Move mLastMove;
+	std::deque<Move> mMoveHistory;
 	int mCastlingAvailable[5] = {0, 1, 1, 1, 1}; //garbage kingSideW kingSideB QueenSideW QueenSideB
 	int mKingNotMoved[3] = {0, 1, 1};			 //garbage, wking, bking - 0 means it moved
 	bool mCanCastle = true;
-	static Bitboard attackRays[64][8]; //precalculated rays first dim is square pos second dim is direction
+	static Bitboard attackRays[65][8]; //precalculated rays first dim is square pos second dim is direction
 
 	// std::chrono::time_point<std::chrono::system_clock> now{ std::chrono::system_clock::now() };
 	// std::chrono::system_clock::duration epoch{ now.time_since_epoch() };

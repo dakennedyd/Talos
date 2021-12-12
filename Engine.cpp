@@ -123,7 +123,7 @@ void Engine::uci()
 		if (command[0] == "go")
 		{
 			//chessboard.generateMoves();
-			search(chessboard, 4, chessboard.mPlayerToMove);
+			search(chessboard, 2, chessboard.mPlayerToMove);
 			if (chessboard.mPlayerToMove == BLACK)
 			{
 				for (auto &m : chessboard.mPossibleMoves)
@@ -145,12 +145,45 @@ void Engine::uci()
 
 			validcommand = true;
 		}
+		if (command[0] == "perft")
+		{
+			if (command.size() > 1)
+			{
+				auto depth = std::stoi(command[1]);
+				chessboard.reset();
+				chessboard.setState(START_POS_FEN_STRING);
+				std::cout << "depth   nodes\n";
+				//mPerftNodes = 0;
+				//mNodesCounter = 0;
+				chessboard.mPossibleMoves.clear();
+				std::cout << depth << "       " << perft(depth) << "\n";
+			}else{
+				//perft();
+			}
+			validcommand = true;
+		}
 		if (!validcommand)
 		{
-			std::cout << "invalid command:" << commandString << "\n";
+			std::cout << "info invalid command:" << commandString << "\n";
 		}
 		validcommand = false;
 	}
+}
+
+uint64_t Engine::perft(const int depth)
+{
+	if (depth < 1)
+    	return uint64_t(1);
+
+	auto moveList = chessboard.generateMovesPerft();
+	int perftNodes = 0;
+	for(auto i : moveList)
+	{
+		chessboard.makeMove(i);
+		perftNodes += perft(depth - 1);
+		chessboard.unmakeMove();
+  	}
+	return perftNodes;
 }
 
 void Engine::printInfo()
@@ -161,35 +194,41 @@ void Engine::printInfo()
 int Engine::search(Chessboard &node, int depth, Player maxPlayer)
 {
 	node.generateMoves();
-	if (depth == 0 || node.mPossibleMoves.size() == 0)
+	if(node.mPossibleMoves.size() == 0)
+	{
+		if(maxPlayer == WHITE)
+			return INT_MAX_VALUE;
+		else
+			return INT_MIN_VALUE;
+	}
+	if (depth == 0)
 	{
 		node.evaluation();
-		//if(maxPlayer == BLACK) node.mPositionValue *= -1;
 		return node.mPositionValue;
 	}
 	if (maxPlayer == WHITE)
 	{
 		node.mPositionValue = INT_MIN_VALUE;
-		for (auto &n : node.mPossibleMoves)
+		for (auto &move : node.mPossibleMoves)
 		{
 			auto child = node;
-			child.makeMove(n);
+			child.makeMove(move);
 			child.mPlayerToMove = BLACK;
-			n.mScore = search(child, depth - 1, BLACK);
-			node.mPositionValue = std::max(node.mPositionValue, n.mScore);
+			node.mPositionValue = search(child, depth - 1, BLACK);
+			move.mScore = std::max(node.mPositionValue, move.mScore);
 		}
 		return node.mPositionValue;
 	}
 	else
 	{
 		node.mPositionValue = INT_MAX_VALUE;
-		for (auto &n : node.mPossibleMoves)
+		for (auto &move : node.mPossibleMoves)
 		{
 			auto child = node;
-			child.makeMove(n);
+			child.makeMove(move);
 			child.mPlayerToMove = WHITE;
-			n.mScore = search(child, depth - 1, WHITE);
-			node.mPositionValue = std::min(node.mPositionValue, n.mScore);
+			node.mPositionValue = search(child, depth - 1, WHITE);
+			move.mScore = std::min(node.mPositionValue, move.mScore);
 		}
 		return node.mPositionValue;
 	}

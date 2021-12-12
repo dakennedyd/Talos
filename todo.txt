@@ -3,3 +3,4 @@ TODO:
 2. fix bugs in search function
 3. search is REALLY slow
 4. add randomization when generating moves
+5. fix getHighestSetBit and getLowestSetBit
